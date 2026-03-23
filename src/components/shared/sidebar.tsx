@@ -57,7 +57,7 @@ export function Sidebar({ user }: SidebarProps) {
 
   return (
     <aside
-      className="hidden lg:flex w-60 shrink-0 flex-col h-screen sticky top-0"
+      className="hidden lg:flex shrink-0 flex-col h-screen sticky top-0 group/sidebar w-[68px] hover:w-60 transition-all duration-300 ease-in-out overflow-hidden z-40"
       style={{
         background: 'rgba(255,255,255,0.55)',
         backdropFilter: 'blur(16px)',
@@ -67,7 +67,7 @@ export function Sidebar({ user }: SidebarProps) {
     >
       {/* Logo */}
       <div
-        className="flex h-16 items-center gap-3 px-5 shrink-0"
+        className="flex h-16 items-center gap-3 px-[18px] shrink-0"
         style={{ borderBottom: '1px solid #E8E3F5' }}
       >
         <div
@@ -77,7 +77,7 @@ export function Sidebar({ user }: SidebarProps) {
           O
         </div>
         <span
-          className="text-sm font-bold tracking-widest"
+          className="text-sm font-bold tracking-widest whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300"
           style={{ color: '#393939', letterSpacing: '0.2em' }}
         >
           OLHARR
@@ -85,7 +85,7 @@ export function Sidebar({ user }: SidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-0.5">
+      <nav className="flex-1 overflow-y-auto px-2.5 py-4 flex flex-col gap-0.5">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -93,22 +93,26 @@ export function Sidebar({ user }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-all"
+              className="group/item relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-all whitespace-nowrap"
               style={{
                 background: isActive ? '#8b5cf6' : 'transparent',
                 color: isActive ? '#FFFFFF' : '#676767',
               }}
             >
               <Icon className="size-4 shrink-0" />
-              <span className="flex-1">{item.label}</span>
-              {isActive && <ChevronRight className="size-3.5 shrink-0 opacity-80" />}
+              <span className="flex-1 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300">
+                {item.label}
+              </span>
+              {isActive && (
+                <ChevronRight className="size-3.5 shrink-0 opacity-0 group-hover/sidebar:opacity-80 transition-opacity duration-300" />
+              )}
             </Link>
           )
         })}
       </nav>
 
       {/* User */}
-      <div className="px-4 py-4 shrink-0" style={{ borderTop: '1px solid #E8E3F5' }}>
+      <div className="px-3 py-4 shrink-0" style={{ borderTop: '1px solid #E8E3F5' }}>
         <div className="flex items-center gap-3 mb-3">
           <div
             className="size-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
@@ -119,7 +123,7 @@ export function Sidebar({ user }: SidebarProps) {
           >
             {getInitials(user.name)}
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300">
             <p className="text-sm font-semibold truncate" style={{ color: '#1C1730' }}>
               {user.name}
             </p>
@@ -134,11 +138,13 @@ export function Sidebar({ user }: SidebarProps) {
         <button
           type="button"
           onClick={() => logout()}
-          className="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-xs font-medium transition-colors hover:opacity-80"
+          className="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-xs font-medium transition-colors hover:opacity-80 whitespace-nowrap"
           style={{ color: '#676767', background: 'rgba(139,92,246,0.06)' }}
         >
-          <LogOut className="size-3.5" />
-          Sair da conta
+          <LogOut className="size-3.5 shrink-0" />
+          <span className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300">
+            Sair da conta
+          </span>
         </button>
       </div>
     </aside>
