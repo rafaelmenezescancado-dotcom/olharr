@@ -4,8 +4,15 @@ import { useState } from 'react'
 import { Plus, ChevronRight, DollarSign, FileText } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { criarPagamentoFreela, avancarFasePagamento } from '@/modules/pagamentos-freela/actions'
-import { FASES } from '@/modules/pagamentos-freela/queries'
 import type { FasePagamentoFreelancer } from '@/generated/prisma/client'
+
+const FASES: FasePagamentoFreelancer[] = [
+  'CONTRATACAO',
+  'AGUARDANDO_EVENTO',
+  'LANCAMENTO_DRE',
+  'PAGO',
+  'ARQUIVADO',
+]
 
 const FASE_LABELS: Record<FasePagamentoFreelancer, string> = {
   CONTRATACAO: 'Contratação',
