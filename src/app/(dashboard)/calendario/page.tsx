@@ -1,11 +1,12 @@
 import { requireAuth } from '@/lib/auth/require-role'
+import { getPostsKanban } from '@/modules/calendario/queries'
+import { CalendarioBoard } from '@/components/calendario/calendario-board'
+
+export const dynamic = 'force-dynamic'
 
 export default async function CalendarioPage() {
   await requireAuth()
-  return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold" style={{ color: '#F0EDF5' }}>Calendario</h1>
-      <p style={{ color: '#8B82A0' }}>Em construção...</p>
-    </div>
-  )
+  const byStatus = await getPostsKanban()
+
+  return <CalendarioBoard byStatus={byStatus} />
 }

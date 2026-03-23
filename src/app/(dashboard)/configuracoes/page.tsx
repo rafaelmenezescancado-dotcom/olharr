@@ -1,11 +1,21 @@
 import { requireAuth } from '@/lib/auth/require-role'
+import { prisma } from '@/lib/prisma'
+import { ConfiguracoesView } from '@/components/configuracoes/configuracoes-view'
+
+export const dynamic = 'force-dynamic'
 
 export default async function ConfiguracoesPage() {
-  await requireAuth()
+  const currentUser = await requireAuth()
+
+  const usuarios = await prisma.user.findMany({
+    select: { id: true, name: true, email: true, role: true, active: true },
+    orderBy: { name: 'asc' },
+  })
+
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold" style={{ color: '#F0EDF5' }}>Configuracoes</h1>
-      <p style={{ color: '#8B82A0' }}>Em construção...</p>
-    </div>
+    <ConfiguracoesView
+      currentUser={{ name: currentUser.name, email: currentUser.email, role: currentUser.role }}
+      usuarios={usuarios}
+    />
   )
 }
