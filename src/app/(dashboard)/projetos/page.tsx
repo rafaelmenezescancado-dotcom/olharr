@@ -1,11 +1,25 @@
-import { requireAuth } from '@/lib/auth/require-role'
+import { requireRole } from '@/lib/auth/require-role'
+import { getProjetosKanban, getClientesForSelect, getUsersForSelect } from '@/modules/projetos/queries'
+import { ProjetosKanban } from '@/components/projetos/projetos-kanban'
+
+export const dynamic = 'force-dynamic'
 
 export default async function ProjetosPage() {
-  await requireAuth()
+  await requireRole(['ADMIN', 'PRODUTOR', 'FINANCEIRO'])
+
+  const [projetosByStage, clientes, users] = await Promise.all([
+    getProjetosKanban(),
+    getClientesForSelect(),
+    getUsersForSelect(),
+  ])
+
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold" style={{ color: '#F0EDF5' }}>Projetos</h1>
-      <p style={{ color: '#8B82A0' }}>Em construção...</p>
+    <div className="p-6 min-h-full" style={{ background: 'var(--color-background)' }}>
+      <ProjetosKanban
+        projetosByStage={projetosByStage}
+        clientes={clientes}
+        users={users}
+      />
     </div>
   )
 }

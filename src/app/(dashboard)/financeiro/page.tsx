@@ -1,11 +1,27 @@
-import { requireAuth } from '@/lib/auth/require-role'
+import { requireRole } from '@/lib/auth/require-role'
+import { getTransacoesComResumo } from '@/modules/financeiro/queries'
+import { FinanceiroDashboard } from '@/components/financeiro/financeiro-dashboard'
+import type { FinancialAccount, Transaction } from '@/generated/prisma/client'
+
+export const dynamic = 'force-dynamic'
+
+interface TransacaoComConta extends Transaction {
+  conta: Pick<FinancialAccount, 'id' | 'nome' | 'banco'>
+}
 
 export default async function FinanceiroPage() {
-  await requireAuth()
+  await requireRole(['ADMIN', 'FINANCEIRO'])
+
+  const { transacoes, contas, entradas, saidas } = await getTransacoesComResumo()
+
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold" style={{ color: '#F0EDF5' }}>Financeiro</h1>
-      <p style={{ color: '#8B82A0' }}>Em construção...</p>
+    <div className="p-6 min-h-full" style={{ background: 'var(--color-background)' }}>
+      <FinanceiroDashboard
+        transacoes={transacoes as TransacaoComConta[]}
+        contas={contas}
+        entradas={entradas}
+        saidas={saidas}
+      />
     </div>
   )
 }

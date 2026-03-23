@@ -1,11 +1,24 @@
-import { requireAuth } from '@/lib/auth/require-role'
+import { requireRole } from '@/lib/auth/require-role'
+import { getOrcamentos } from '@/modules/orcamentos/queries'
+import { prisma } from '@/lib/prisma'
+import { OrcamentosList } from '@/components/orcamentos/orcamentos-list'
+
+export const dynamic = 'force-dynamic'
 
 export default async function OrcamentosPage() {
-  await requireAuth()
+  await requireRole(['ADMIN', 'PRODUTOR'])
+
+  const [orcamentos, clientes] = await Promise.all([
+    getOrcamentos(),
+    prisma.client.findMany({
+      select: { id: true, name: true, company: true },
+      orderBy: { name: 'asc' },
+    }),
+  ])
+
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold" style={{ color: '#F0EDF5' }}>Orcamentos</h1>
-      <p style={{ color: '#8B82A0' }}>Em construção...</p>
+    <div className="p-6 min-h-full" style={{ background: 'var(--color-background)' }}>
+      <OrcamentosList orcamentos={orcamentos} clientes={clientes} />
     </div>
   )
 }

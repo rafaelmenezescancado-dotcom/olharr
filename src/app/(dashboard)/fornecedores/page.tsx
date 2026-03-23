@@ -1,11 +1,16 @@
-import { requireAuth } from '@/lib/auth/require-role'
+import { requireRole } from '@/lib/auth/require-role'
+import { getFornecedores } from '@/modules/fornecedores/queries'
+import { FornecedoresList } from '@/components/fornecedores/fornecedores-list'
+
+export const dynamic = 'force-dynamic'
 
 export default async function FornecedoresPage() {
-  await requireAuth()
+  await requireRole(['ADMIN', 'PRODUTOR'])
+  const fornecedores = await getFornecedores()
+
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold" style={{ color: '#F0EDF5' }}>Fornecedores</h1>
-      <p style={{ color: '#8B82A0' }}>Em construção...</p>
+    <div className="p-6 min-h-full" style={{ background: 'var(--color-background)' }}>
+      <FornecedoresList fornecedores={fornecedores} />
     </div>
   )
 }
