@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -54,11 +55,16 @@ interface SidebarProps {
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
+  const [expanded, setExpanded] = useState(false)
 
   return (
     <aside
-      className="hidden lg:flex shrink-0 flex-col h-screen sticky top-0 group/sidebar w-[68px] hover:w-60 transition-all duration-300 ease-in-out overflow-hidden z-40"
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
+      className="hidden lg:flex shrink-0 flex-col h-screen sticky top-0 overflow-hidden z-40"
       style={{
+        width: expanded ? 240 : 68,
+        transition: 'width 300ms cubic-bezier(0.4, 0, 0.2, 1)',
         background: 'rgba(255,255,255,0.55)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
@@ -67,8 +73,8 @@ export function Sidebar({ user }: SidebarProps) {
     >
       {/* Logo */}
       <div
-        className="flex h-16 items-center gap-3 px-[18px] shrink-0"
-        style={{ borderBottom: '1px solid #E8E3F5' }}
+        className="flex h-16 items-center gap-3 shrink-0"
+        style={{ borderBottom: '1px solid #E8E3F5', paddingLeft: 18, paddingRight: 18 }}
       >
         <div
           className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
@@ -77,15 +83,20 @@ export function Sidebar({ user }: SidebarProps) {
           O
         </div>
         <span
-          className="text-sm font-bold tracking-widest whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300"
-          style={{ color: '#393939', letterSpacing: '0.2em' }}
+          className="text-sm font-bold tracking-widest whitespace-nowrap"
+          style={{
+            color: '#393939',
+            letterSpacing: '0.2em',
+            opacity: expanded ? 1 : 0,
+            transition: 'opacity 200ms',
+          }}
         >
           OLHARR
         </span>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-2.5 py-4 flex flex-col gap-0.5">
+      <nav className="flex-1 overflow-y-auto py-4 flex flex-col gap-0.5" style={{ paddingLeft: 10, paddingRight: 10 }}>
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -93,18 +104,31 @@ export function Sidebar({ user }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="group/item relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-all whitespace-nowrap"
+              className="relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap"
               style={{
                 background: isActive ? '#8b5cf6' : 'transparent',
                 color: isActive ? '#FFFFFF' : '#676767',
+                transition: 'background 150ms',
               }}
             >
               <Icon className="size-4 shrink-0" />
-              <span className="flex-1 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300">
+              <span
+                style={{
+                  flex: 1,
+                  opacity: expanded ? 1 : 0,
+                  transition: 'opacity 200ms',
+                }}
+              >
                 {item.label}
               </span>
               {isActive && (
-                <ChevronRight className="size-3.5 shrink-0 opacity-0 group-hover/sidebar:opacity-80 transition-opacity duration-300" />
+                <ChevronRight
+                  className="size-3.5 shrink-0"
+                  style={{
+                    opacity: expanded ? 0.8 : 0,
+                    transition: 'opacity 200ms',
+                  }}
+                />
               )}
             </Link>
           )
@@ -112,7 +136,7 @@ export function Sidebar({ user }: SidebarProps) {
       </nav>
 
       {/* User */}
-      <div className="px-3 py-4 shrink-0" style={{ borderTop: '1px solid #E8E3F5' }}>
+      <div className="shrink-0" style={{ borderTop: '1px solid #E8E3F5', padding: '16px 12px' }}>
         <div className="flex items-center gap-3 mb-3">
           <div
             className="size-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
@@ -123,7 +147,10 @@ export function Sidebar({ user }: SidebarProps) {
           >
             {getInitials(user.name)}
           </div>
-          <div className="flex-1 min-w-0 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300">
+          <div
+            className="flex-1 min-w-0"
+            style={{ opacity: expanded ? 1 : 0, transition: 'opacity 200ms' }}
+          >
             <p className="text-sm font-semibold truncate" style={{ color: '#1C1730' }}>
               {user.name}
             </p>
@@ -138,11 +165,11 @@ export function Sidebar({ user }: SidebarProps) {
         <button
           type="button"
           onClick={() => logout()}
-          className="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-xs font-medium transition-colors hover:opacity-80 whitespace-nowrap"
+          className="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-xs font-medium whitespace-nowrap"
           style={{ color: '#676767', background: 'rgba(139,92,246,0.06)' }}
         >
           <LogOut className="size-3.5 shrink-0" />
-          <span className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300">
+          <span style={{ opacity: expanded ? 1 : 0, transition: 'opacity 200ms' }}>
             Sair da conta
           </span>
         </button>
