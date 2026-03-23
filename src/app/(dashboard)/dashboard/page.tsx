@@ -18,7 +18,7 @@ export default async function DashboardPage() {
 
   const stats = [
     { label: 'Projetos Ativos', value: projetosAtivos, icon: Clapperboard, color: '#1E7FCD' },
-    { label: 'Clientes', value: clientesTotal, icon: Users, color: '#B52774' },
+    { label: 'Clientes', value: clientesTotal, icon: Users, color: '#8B5CF6' },
     { label: 'Tarefas Pendentes', value: tarefasPendentes, icon: CheckSquare, color: '#F59E0B' },
     {
       label: 'Receita Prevista',
@@ -31,10 +31,10 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: '#F0EDF5' }}>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--color-foreground)' }}>
           Olá, {user.name.split(' ')[0]} 👋
         </h1>
-        <p className="text-sm mt-1" style={{ color: '#8B82A0' }}>
+        <p className="text-sm mt-1" style={{ color: 'var(--color-muted-foreground)' }}>
           Aqui está o resumo do dia
         </p>
       </div>
@@ -45,16 +45,21 @@ export default async function DashboardPage() {
           return (
             <div
               key={stat.label}
-              className="rounded-lg p-4"
-              style={{ background: '#252035', border: '1px solid #3A3550' }}
+              className="rounded-2xl p-5 shadow-sm"
+              style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <Icon className="size-4" style={{ color: stat.color }} />
-                <span className="text-xs" style={{ color: '#8B82A0' }}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-medium" style={{ color: 'var(--color-muted-foreground)' }}>
                   {stat.label}
                 </span>
+                <div
+                  className="size-8 rounded-xl flex items-center justify-center"
+                  style={{ background: `${stat.color}15` }}
+                >
+                  <Icon className="size-4" style={{ color: stat.color }} />
+                </div>
               </div>
-              <p className="text-2xl font-bold" style={{ color: '#F0EDF5' }}>
+              <p className="text-2xl font-bold" style={{ color: 'var(--color-foreground)' }}>
                 {stat.value}
               </p>
             </div>

@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #1E1826;
-  --color-surface: #252035;
-  --color-surface-2: #2D2642;
-  --color-border: #3A3550;
-  --color-border-subtle: #2D2642;
+  --color-background: #F0EDFF;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #F7F5FF;
+  --color-border: #E8E3F5;
+  --color-border-subtle: #F0EDFF;
 
-  --color-foreground: #F0EDF5;
-  --color-muted-foreground: #8B82A0;
-  --color-subtle-foreground: #6B6280;
+  --color-foreground: #1C1730;
+  --color-muted-foreground: #676767;
+  --color-subtle: #9B96B0;
 
-  --color-primary: #B52774;
+  --color-primary: #8B5CF6;
   --color-primary-foreground: #FFFFFF;
 
   --color-accent: #1E7FCD;
@@ -36,37 +36,41 @@ body {
 }
 
 body {
-  background-color: #1E1826;
-  color: #F0EDF5;
-  font-family: system-ui, -apple-system, sans-serif;
+  background: linear-gradient(145deg, #ede9ff 0%, #f8f6ff 45%, #e8e3ff 100%);
+  background-attachment: fixed;
+  color: #1C1730;
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
-  outline: 2px solid #1E7FCD;
+  outline: 2px solid #8B5CF6;
   outline-offset: 2px;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #6B6280;
+  color: #9B96B0;
 }
 
 ::selection {
-  background: #B52774;
+  background: #8B5CF6;
   color: white;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #252035;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3A3550;
+  background: #d0c8f0;
   border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b8aee8;
 }
