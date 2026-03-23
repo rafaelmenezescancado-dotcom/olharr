@@ -1,0 +1,540 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── ENUMS ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  PRODUTOR
+  FINANCEIRO
+  EXTERNO
+}
+
+enum ProjectStage {
+  OS_DISTRIBUICAO
+  PRE_PRODUCAO
+  DIA_DO_EVENTO
+  POS_PRODUCAO
+  EDICAO
+  REVISAO
+  ENTREGUE
+  ARQUIVADO
+}
+
+enum CrmStage {
+  NOVO_LEAD
+  PRIMEIRO_CONTATO
+  PROPOSTA_ENVIADA
+  NEGOCIACAO
+  FECHADO_GANHO
+  FECHADO_PERDIDO
+  INATIVO
+}
+
+enum TaskStatus {
+  PENDENTE
+  EM_ANDAMENTO
+  CONCLUIDA
+  CANCELADA
+}
+
+enum TaskPriority {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+enum TransactionType {
+  ENTRADA
+  SAIDA
+  TRANSFERENCIA
+}
+
+enum ParcelaStatus {
+  PENDENTE
+  PAGO
+  ATRASADO
+  CANCELADO
+}
+
+enum FasePagamentoFreelancer {
+  CONTRATACAO
+  AGUARDANDO_EVENTO
+  LANCAMENTO_DRE
+  PAGO
+  ARQUIVADO
+}
+
+enum TurmaStatus {
+  ATIVA
+  CONCLUIDA
+  CANCELADA
+}
+
+enum PostStatus {
+  RASCUNHO
+  AGUARDANDO_APROVACAO
+  APROVADO
+  PUBLICADO
+  REJEITADO
+}
+
+enum OrcamentoStatus {
+  RASCUNHO
+  ENVIADO
+  APROVADO
+  RECUSADO
+  EXPIRADO
+}
+
+// ─── USUÁRIOS ────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  authId    String   @unique
+  name      String
+  email     String   @unique
+  role      UserRole @default(PRODUTOR)
+  avatarUrl String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tarefas        Tarefa[]
+  projetos       Project[]     @relation("ProjectResponsavel")
+  notificacoes   Notification[]
+  postsAprovados Post[]        @relation("PostAprovador")
+
+  @@map("users")
+}
+
+// ─── CRM / CLIENTES ──────────────────────────────────────────────────────────
+
+model Client {
+  id          String    @id @default(cuid())
+  name        String
+  company     String?
+  email       String?
+  phone       String?
+  instagram   String?
+  document    String?
+  stage       CrmStage  @default(NOVO_LEAD)
+  retemISS    Boolean   @default(false)
+  possuiRegraPagamento Boolean @default(false)
+  comoChegou  String?
+  observacoes String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  contatoOperacional  ClienteContatoOperacional?
+  contatoFinanceiro   ClienteContatoFinanceiro?
+  projetos            Project[]
+  orcamentos          Orcamento[]
+  turmas              TurmaFormatura[]
+  followUps           CrmFollowUp[]
+  interacoes          CrmInteracao[]
+
+  @@map("clients")
+}
+
+model ClienteContatoOperacional {
+  id        String  @id @default(cuid())
+  clienteId String  @unique
+  nome      String
+  email     String?
+  telefone  String?
+  cargo     String?
+  whatsapp  String?
+
+  cliente Client @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@map("cliente_contatos_operacionais")
+}
+
+model ClienteContatoFinanceiro {
+  id        String  @id @default(cuid())
+  clienteId String  @unique
+  nome      String
+  email     String?
+  telefone  String?
+  cargo     String?
+  whatsapp  String?
+
+  cliente Client @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@map("cliente_contatos_financeiros")
+}
+
+model CrmFollowUp {
+  id        String   @id @default(cuid())
+  clienteId String
+  tipo      String
+  dataEnvio DateTime
+  resposta  String?
+  createdAt DateTime @default(now())
+
+  cliente Client @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@map("crm_followups")
+}
+
+model CrmInteracao {
+  id        String   @id @default(cuid())
+  clienteId String
+  tipo      String
+  descricao String
+  createdAt DateTime @default(now())
+
+  cliente Client @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@map("crm_interacoes")
+}
+
+// ─── PROJETOS ────────────────────────────────────────────────────────────────
+
+model Project {
+  id              String       @id @default(cuid())
+  title           String
+  clienteId       String
+  responsavelId   String?
+  stage           ProjectStage @default(OS_DISTRIBUICAO)
+  vertical        String?
+  dataEvento      DateTime?
+  dataEntrega     DateTime?
+  revenueExpected Decimal?     @db.Decimal(10, 2)
+  observacoes     String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  cliente       Client    @relation(fields: [clienteId], references: [id])
+  responsavel   User?     @relation("ProjectResponsavel", fields: [responsavelId], references: [id])
+  custos        ProjectCost[]
+  tarefas       Tarefa[]
+  labels        ProjetoLabel[]
+  pagamentosFreela PagamentoFreelancer[]
+  agendaEventos AgendaEvent[]
+
+  @@map("projects")
+}
+
+model ProjectCost {
+  id          String   @id @default(cuid())
+  projectId   String
+  descricao   String
+  amount      Decimal  @db.Decimal(10, 2)
+  categoria   String?
+  pago        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_costs")
+}
+
+// ─── LABELS ──────────────────────────────────────────────────────────────────
+
+model Label {
+  id        String @id @default(cuid())
+  nome      String
+  cor       String @default("#1E7FCD")
+  createdAt DateTime @default(now())
+
+  projetos ProjetoLabel[]
+
+  @@map("labels")
+}
+
+model ProjetoLabel {
+  projetoId String
+  labelId   String
+
+  projeto Project @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  label   Label   @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([projetoId, labelId])
+  @@map("projeto_labels")
+}
+
+// ─── TAREFAS ─────────────────────────────────────────────────────────────────
+
+model Tarefa {
+  id           String       @id @default(cuid())
+  titulo       String
+  descricao    String?
+  status       TaskStatus   @default(PENDENTE)
+  prioridade   TaskPriority @default(MEDIA)
+  projectId    String?
+  responsavelId String?
+  dataVencimento DateTime?
+  concluidaEm  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  projeto     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  responsavel User?    @relation(fields: [responsavelId], references: [id], onDelete: SetNull)
+
+  @@map("tarefas")
+}
+
+// ─── FINANCEIRO ──────────────────────────────────────────────────────────────
+
+model FinancialAccount {
+  id        String   @id @default(cuid())
+  nome      String
+  banco     String?
+  tipo      String   @default("CORRENTE")
+  ativa     Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  transacoes Transaction[]
+
+  @@map("financial_accounts")
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  contaId     String
+  tipo        TransactionType
+  valor       Decimal         @db.Decimal(10, 2)
+  descricao   String
+  categoria   String?
+  data        DateTime
+  externalId  String?         @unique
+  createdAt   DateTime        @default(now())
+
+  conta FinancialAccount @relation(fields: [contaId], references: [id])
+
+  @@map("transactions")
+}
+
+// ─── FREELANCERS / TALENTOS ──────────────────────────────────────────────────
+
+model Freelancer {
+  id           String   @id @default(cuid())
+  name         String
+  fullName     String?
+  email        String?
+  phone        String?
+  cpf          String?
+  pixKey       String?
+  pixType      String?
+  hasCar       Boolean  @default(false)
+  specialties  String[]
+  instagram    String?
+  portfolio    String?
+  dailyRate    Decimal? @db.Decimal(10, 2)
+  observacoes  String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  pagamentos PagamentoFreelancer[]
+
+  @@map("freelancers")
+}
+
+model PagamentoFreelancer {
+  id             String                  @id @default(cuid())
+  freelancerId   String
+  projectId      String?
+  escopo         String
+  valorCombinado Decimal                 @db.Decimal(10, 2)
+  combinadoNF    Boolean                 @default(false)
+  dataProjeto    DateTime?
+  dataPagamento  DateTime?
+  fase           FasePagamentoFreelancer @default(CONTRATACAO)
+  observacoes    String?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  freelancer Freelancer @relation(fields: [freelancerId], references: [id])
+  projeto    Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@map("pagamentos_freelancers")
+}
+
+// ─── FORNECEDORES ────────────────────────────────────────────────────────────
+
+model Fornecedor {
+  id          String   @id @default(cuid())
+  nome        String
+  servico     String
+  email       String?
+  telefone    String?
+  documento   String?
+  valorHora   Decimal? @db.Decimal(10, 2)
+  observacoes String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("fornecedores")
+}
+
+// ─── ORÇAMENTOS ──────────────────────────────────────────────────────────────
+
+model Orcamento {
+  id          String          @id @default(cuid())
+  clienteId   String
+  titulo      String
+  status      OrcamentoStatus @default(RASCUNHO)
+  vertical    String?
+  validoAte   DateTime?
+  totalBruto  Decimal         @db.Decimal(10, 2) @default(0)
+  margem      Decimal?        @db.Decimal(5, 2)
+  observacoes String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  cliente Client         @relation(fields: [clienteId], references: [id])
+  itens   OrcamentoItem[]
+
+  @@map("orcamentos")
+}
+
+model OrcamentoItem {
+  id          String  @id @default(cuid())
+  orcamentoId String
+  descricao   String
+  quantidade  Int     @default(1)
+  valorUnit   Decimal @db.Decimal(10, 2)
+  categoria   String?
+
+  orcamento Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+
+  @@map("orcamento_itens")
+}
+
+// ─── AGENDA ──────────────────────────────────────────────────────────────────
+
+model AgendaEvent {
+  id          String    @id @default(cuid())
+  titulo      String
+  descricao   String?
+  tipo        String    @default("EVENTO")
+  inicio      DateTime
+  fim         DateTime?
+  allDay      Boolean   @default(false)
+  projectId   String?
+  googleEventId String?
+  createdAt   DateTime  @default(now())
+
+  projeto Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@map("agenda_events")
+}
+
+// ─── CALENDÁRIO SOCIAL ───────────────────────────────────────────────────────
+
+model Post {
+  id           String     @id @default(cuid())
+  titulo       String
+  legenda      String?
+  tipo         String     @default("FEED")
+  status       PostStatus @default(RASCUNHO)
+  dataPublicacao DateTime?
+  aprovadorId  String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  aprovador User? @relation("PostAprovador", fields: [aprovadorId], references: [id], onDelete: SetNull)
+
+  @@map("posts")
+}
+
+// ─── NOTIFICAÇÕES ────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  titulo    String
+  mensagem  String?
+  lida      Boolean  @default(false)
+  tipo      String   @default("INFO")
+  link      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ─── FORMATURAS ──────────────────────────────────────────────────────────────
+
+model TurmaFormatura {
+  id          String      @id @default(cuid())
+  nome        String
+  clienteId   String
+  status      TurmaStatus @default(ATIVA)
+  dataEvento  DateTime?
+  valorTotal  Decimal?    @db.Decimal(10, 2)
+  observacoes String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  cliente   Client     @relation(fields: [clienteId], references: [id])
+  formandos Formando[]
+  eventos   EventoTurma[]
+
+  @@map("turmas_formaturas")
+}
+
+model Formando {
+  id       String @id @default(cuid())
+  turmaId  String
+  nome     String
+  email    String?
+  telefone String?
+  createdAt DateTime @default(now())
+
+  turma    TurmaFormatura @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  parcelas ParcelaFormando[]
+
+  @@map("formandos")
+}
+
+model ParcelaFormando {
+  id         String        @id @default(cuid())
+  formandoId String
+  valor      Decimal       @db.Decimal(10, 2)
+  vencimento DateTime
+  status     ParcelaStatus @default(PENDENTE)
+  paidAt     DateTime?
+  createdAt  DateTime      @default(now())
+
+  formando Formando @relation(fields: [formandoId], references: [id], onDelete: Cascade)
+
+  @@map("parcelas_formandos")
+}
+
+model EventoTurma {
+  id      String   @id @default(cuid())
+  turmaId String
+  nome    String
+  data    DateTime
+  local   String?
+  createdAt DateTime @default(now())
+
+  turma  TurmaFormatura @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  custos CustoEventoTurma[]
+
+  @@map("eventos_turma")
+}
+
+model CustoEventoTurma {
+  id        String  @id @default(cuid())
+  eventoId  String
+  descricao String
+  valor     Decimal @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+
+  evento EventoTurma @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  @@map("custos_eventos_turma")
+}
