@@ -221,7 +221,6 @@ export function FormaturasList({ turmas }: FormaturasListProps) {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="font-bold text-slate-900 text-lg leading-tight">{turma.nome}</h3>
-                        <p className="text-sm text-slate-500 mt-1">{turma.cliente.company || turma.cliente.name}</p>
                       </div>
                       <button className="text-slate-400 hover:text-indigo-600 cursor-pointer p-1 rounded-md hover:bg-slate-50 relative z-20">
                         <MoreHorizontal size={20} />
