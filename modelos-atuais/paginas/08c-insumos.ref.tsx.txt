@@ -1,0 +1,32 @@
+// 08c - Insumos (/insumos)
+// STATUS: NOVO — Precisa ser construído do zero
+// DESCRIÇÃO: Controle de insumos/materiais utilizados pela produtora
+// ROTA PLANEJADA: /insumos
+
+// TODO: Definir no novo design (Gemini)
+// FUNCIONALIDADES NECESSÁRIAS:
+// - Listagem de insumos com busca e filtros
+// - Cadastro: nome, categoria, quantidade em estoque, valor unitário
+// - Controle de estoque (entrada/saída)
+// - Vinculação com projetos e eventos
+// - Alertas de estoque baixo
+//
+// SCHEMA PRISMA NECESSÁRIO:
+// model Insumo {
+//   id            String   @id @default(cuid())
+//   nome          String
+//   descricao     String?
+//   categoria     String?
+//   quantidadeEstoque Int  @default(0)
+//   valorUnitario Float?
+//   unidade       String?  // ex: "unidade", "metro", "kg"
+//   estoqueMinimo Int?     // alerta quando abaixo
+//   ativo         Boolean  @default(true)
+//   createdAt     DateTime @default(now())
+//   updatedAt     DateTime @updatedAt
+// }
+
+export default function InsumosPage() {
+  // Placeholder — implementar com novo design
+  return null;
+}

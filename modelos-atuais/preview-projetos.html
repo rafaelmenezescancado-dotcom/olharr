@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OLHARR — Preview Projetos</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg: #F0EDFF; --surface: #FFFFFF; --surface-2: #F7F5FF;
+  --border: #E8E3F5; --fg: #1C1730; --muted: #676767; --subtle: #9B96B0;
+  --primary: #8B5CF6; --primary-hover: #7C4FE0;
+  --accent: #1E7FCD; --success: #22C55E; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --radius-sm: 8px;
+  --rose: #F43F5E; --cyan: #06B6D4; --teal: #14B8A6; --indigo: #6366F1;
+}
+body { font-family:'Poppins',system-ui,sans-serif; background:linear-gradient(145deg,#ede9ff,#f8f6ff 45%,#e8e3ff); background-attachment:fixed; color:var(--fg); font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; }
+::selection { background:var(--primary); color:#fff; }
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:#d0c8f0; border-radius:3px; }
+
+/* Sidebar */
+.sidebar { width:220px; background:rgba(255,255,255,.55); backdrop-filter:blur(16px); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; height:100vh; position:sticky; top:0; }
+.sidebar-logo { display:flex; align-items:center; gap:10px; height:64px; padding:0 18px; border-bottom:1px solid var(--border); }
+.sidebar-logo .icon { width:32px; height:32px; background:var(--primary); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; }
+.sidebar-logo span { font-weight:700; font-size:13px; letter-spacing:.2em; color:#393939; }
+.sidebar nav { flex:1; overflow-y:auto; padding:16px 10px; display:flex; flex-direction:column; gap:2px; }
+.sidebar a { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:12px; text-decoration:none; color:var(--muted); font-size:13px; font-weight:500; transition:all .15s; cursor:pointer; }
+.sidebar a:hover { background:rgba(139,92,246,.06); }
+.sidebar a.active { background:var(--primary); color:#fff; }
+.sidebar a .emoji { width:20px; text-align:center; }
+
+/* Main Area */
+.main { flex:1; display:flex; flex-direction:column; height:100vh; min-width:0; overflow:hidden; }
+
+/* Header */
+.page-header { padding:20px 32px 0; }
+.page-header h1 { font-size:18px; font-weight:700; display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.page-header h1 .icon { color:var(--primary); font-size:20px; }
+
+/* Toolbar */
+.toolbar { display:flex; align-items:center; justify-content:space-between; padding:12px 32px; gap:12px; flex-wrap:wrap; }
+.toolbar-left { display:flex; align-items:center; gap:10px; }
+.toolbar select, .toolbar .filter-btn { padding:7px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); font-size:12px; font-weight:600; color:var(--fg); cursor:pointer; outline:none; }
+.toolbar select:focus { border-color:var(--primary); }
+.filter-btn { display:flex; align-items:center; gap:6px; }
+.search-box { position:relative; }
+.search-box input { width:220px; padding:7px 12px 7px 32px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); font-size:12px; outline:none; }
+.search-box input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(139,92,246,.1); }
+.search-box .s-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--subtle); font-size:13px; }
+.btn-new { padding:8px 18px; background:var(--primary); color:#fff; border:none; border-radius:var(--radius-sm); font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(139,92,246,.25); transition:background .15s; }
+.btn-new:hover { background:var(--primary-hover); }
+
+/* View Tabs */
+.view-tabs { display:flex; gap:0; padding:0 32px; border-bottom:1px solid var(--border); background:var(--surface); }
+.view-tab { padding:10px 18px; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; transition:all .15s; }
+.view-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+.view-tab:hover:not(.active) { color:var(--fg); }
+
+/* Kanban Board */
+.board { flex:1; overflow-x:auto; overflow-y:hidden; padding:20px 32px; display:flex; align-items:flex-start; gap:16px; }
+.kanban-col { width:280px; min-width:280px; display:flex; flex-direction:column; max-height:100%; }
+.col-header { padding:10px 14px; border-radius:var(--radius) var(--radius) 0 0; display:flex; justify-content:space-between; align-items:center; border-top:3px solid; }
+.col-header h3 { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; display:flex; align-items:center; gap:6px; }
+.col-header .count { font-size:10px; font-weight:700; padding:1px 7px; border-radius:99px; background:rgba(255,255,255,.7); }
+.col-body { flex:1; overflow-y:auto; padding:8px; display:flex; flex-direction:column; gap:8px; border-radius:0 0 var(--radius) var(--radius); padding-bottom:60px; }
+
+/* Column colors */
+.col-yellow .col-header { border-color:#F59E0B; background:rgba(245,158,11,.06); }
+.col-yellow .col-header h3 { color:#B45309; }
+.col-yellow .col-body { background:rgba(245,158,11,.02); }
+
+.col-blue .col-header { border-color:#3B82F6; background:rgba(59,130,246,.06); }
+.col-blue .col-header h3 { color:#1D4ED8; }
+.col-blue .col-body { background:rgba(59,130,246,.02); }
+
+.col-emerald .col-header { border-color:#10B981; background:rgba(16,185,129,.06); }
+.col-emerald .col-header h3 { color:#047857; }
+.col-emerald .col-body { background:rgba(16,185,129,.02); }
+
+.col-purple .col-header { border-color:var(--primary); background:rgba(139,92,246,.06); }
+.col-purple .col-header h3 { color:var(--primary); }
+.col-purple .col-body { background:rgba(139,92,246,.02); }
+
+.col-rose .col-header { border-color:#F43F5E; background:rgba(244,63,94,.06); }
+.col-rose .col-header h3 { color:#BE123C; }
+.col-rose .col-body { background:rgba(244,63,94,.02); }
+
+.col-orange .col-header { border-color:#F97316; background:rgba(249,115,22,.06); }
+.col-orange .col-header h3 { color:#C2410C; }
+.col-orange .col-body { background:rgba(249,115,22,.02); }
+
+.col-teal .col-header { border-color:#14B8A6; background:rgba(20,184,166,.06); }
+.col-teal .col-header h3 { color:#0F766E; }
+.col-teal .col-body { background:rgba(20,184,166,.02); }
+
+.col-slate .col-header { border-color:#94A3B8; background:rgba(148,163,184,.06); }
+.col-slate .col-header h3 { color:#475569; }
+.col-slate .col-body { background:rgba(148,163,184,.02); }
+
+/* Cards */
+.card { background:var(--surface); border-radius:10px; border:1px solid var(--border); padding:14px; cursor:pointer; transition:all .2s; border-left:4px solid; }
+.card:hover { box-shadow:0 4px 12px rgba(139,92,246,.1); border-color:rgba(139,92,246,.2); transform:translateY(-1px); }
+.card.border-rose { border-left-color:var(--rose); }
+.card.border-indigo { border-left-color:var(--indigo); }
+.card.border-teal { border-left-color:var(--teal); }
+.card.border-cyan { border-left-color:var(--cyan); }
+
+.card-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.badge-casamento { background:rgba(244,63,94,.08); color:#E11D48; }
+.badge-corporativo { background:rgba(6,182,212,.08); color:#0891B2; }
+.badge-ensaio { background:rgba(20,184,166,.08); color:#0D9488; }
+.badge-formatura { background:rgba(99,102,241,.08); color:#4F46E5; }
+
+.card-title { font-size:13px; font-weight:700; line-height:1.3; margin-bottom:10px; }
+.card-fields { display:flex; flex-direction:column; gap:8px; }
+.card-field { display:flex; align-items:flex-start; gap:8px; }
+.card-field .f-icon { color:var(--subtle); font-size:11px; margin-top:2px; flex-shrink:0; }
+.card-field .f-label { font-size:9px; font-weight:700; color:var(--subtle); text-transform:uppercase; letter-spacing:.4px; line-height:1; margin-bottom:2px; }
+.card-field .f-value { font-size:11px; color:var(--fg); }
+.card-footer { display:flex; align-items:center; justify-content:space-between; margin-top:12px; padding-top:10px; border-top:1px solid var(--border); font-size:11px; color:var(--subtle); }
+.sla-ok { color:var(--success); display:flex; align-items:center; gap:4px; }
+.sla-warn { color:var(--warning); display:flex; align-items:center; gap:4px; }
+.card-footer-item { display:flex; align-items:center; gap:4px; }
+
+.col-add-btn { margin:8px 8px 0; padding:8px; border-radius:var(--radius-sm); border:1px dashed var(--border); background:transparent; font-size:11px; font-weight:600; color:var(--subtle); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px; transition:all .15s; }
+.col-add-btn:hover { border-color:var(--primary); color:var(--primary); background:rgba(139,92,246,.04); }
+
+/* Modal Overlay */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(28,23,48,.6); backdrop-filter:blur(4px); z-index:100; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.active { display:flex; }
+.modal { background:var(--surface); border-radius:16px; width:100%; max-width:1100px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 24px 48px rgba(0,0,0,.15); }
+
+/* Modal Header */
+.modal-top { padding:20px 28px; border-bottom:1px solid var(--border); background:var(--surface-2); }
+.modal-top-row { display:flex; justify-content:space-between; align-items:start; margin-bottom:12px; }
+.modal-top h2 { font-size:20px; font-weight:700; letter-spacing:-.3px; flex:1; }
+.modal-close { width:34px; height:34px; border-radius:99px; border:1px solid var(--border); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--muted); }
+.modal-close:hover { background:var(--surface-2); color:var(--fg); }
+.modal-actions { display:flex; gap:16px; font-size:13px; color:var(--muted); font-weight:500; margin-bottom:16px; }
+.modal-actions button { background:none; border:none; display:flex; align-items:center; gap:6px; cursor:pointer; color:inherit; font:inherit; }
+.modal-actions button:hover { color:var(--primary); }
+
+/* Modal Tabs */
+.modal-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); }
+.m-tab { padding:10px 18px; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; transition:all .15s; white-space:nowrap; }
+.m-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+.m-tab:hover:not(.active) { color:var(--fg); }
+.m-tab .tab-count { font-size:10px; background:var(--surface-2); padding:1px 6px; border-radius:4px; margin-left:4px; }
+
+/* Modal Body 3-column */
+.modal-body { flex:1; overflow-y:auto; display:flex; background:var(--surface); }
+.modal-col { padding:24px; overflow-y:auto; }
+.modal-col-left { flex:5; border-right:1px solid var(--border); }
+.modal-col-mid { flex:4; border-right:1px solid var(--border); }
+.modal-col-right { flex:3; background:var(--surface-2); }
+
+/* Form fields */
+.form-field { margin-bottom:20px; }
+.form-label { font-size:10px; font-weight:700; color:var(--subtle); text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; display:flex; align-items:center; gap:4px; }
+.form-label .req { color:var(--danger); }
+.form-value { font-size:13px; color:var(--fg); padding:8px 10px; background:rgba(248,246,255,.5); border-radius:var(--radius-sm); border:1px solid transparent; transition:border .15s; }
+.form-value:hover { border-color:var(--border); }
+
+/* Client card inside modal */
+.client-card { border:1px solid var(--border); border-radius:var(--radius); padding:16px; background:var(--surface); box-shadow:0 1px 3px rgba(0,0,0,.04); transition:border .15s; }
+.client-card:hover { border-color:rgba(139,92,246,.3); }
+.client-card h4 { font-size:14px; font-weight:700; margin-bottom:12px; }
+.client-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:11px; }
+.client-grid .c-label { color:var(--subtle); font-size:10px; margin-bottom:2px; }
+.client-grid .c-value { font-weight:600; color:var(--fg); }
+.client-db-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; background:rgba(139,92,246,.06); color:var(--primary); border-radius:4px; font-size:10px; font-weight:600; border:1px solid rgba(139,92,246,.15); }
+.client-footer { margin-top:12px; padding-top:10px; border-top:1px solid var(--border); font-size:10px; color:var(--subtle); }
+
+/* Briefing */
+.briefing-box { font-size:12px; color:var(--fg); background:rgba(248,246,255,.5); padding:14px; border-radius:var(--radius-sm); border:1px solid var(--border); white-space:pre-wrap; line-height:1.6; }
+
+/* Checklist */
+.phase-badge { display:inline-block; padding:3px 10px; border-radius:4px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; }
+.check-list { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
+.check-item { display:flex; align-items:flex-start; gap:10px; cursor:pointer; }
+.check-box { width:18px; height:18px; border-radius:5px; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; margin-top:1px; transition:all .15s; }
+.check-box.done { background:var(--primary); border-color:var(--primary); color:#fff; }
+.check-text { font-size:12px; font-weight:500; color:var(--fg); }
+.check-text.done { text-decoration:line-through; color:var(--subtle); }
+
+/* Move buttons */
+.move-btn { width:100%; padding:10px 16px; border-radius:99px; border:1px solid; font-size:11px; font-weight:700; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:var(--surface); transition:all .15s; margin-bottom:8px; }
+.move-btn.blue { border-color:rgba(59,130,246,.3); color:#2563EB; }
+.move-btn.blue:hover { background:rgba(59,130,246,.05); }
+.move-btn.rose { border-color:rgba(244,63,94,.3); color:#E11D48; }
+.move-btn.rose:hover { background:rgba(244,63,94,.05); }
+.move-link { font-size:11px; font-weight:600; color:var(--subtle); display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 0; background:none; border:none; }
+.move-link:hover { color:var(--fg); }
+.move-link.purple { color:var(--primary); }
+.move-link.purple:hover { color:var(--primary-hover); }
+
+/* Empty */
+.empty-col { text-align:center; padding:20px 12px; font-size:11px; color:var(--subtle); font-style:italic; }
+
+/* Tab content visibility */
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* Team Section */
+.team-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.team-header h3 { font-size:15px; font-weight:700; }
+.team-stats { display:flex; gap:16px; }
+.team-stat { text-align:center; }
+.team-stat .stat-num { font-size:18px; font-weight:800; color:var(--primary); }
+.team-stat .stat-label { font-size:9px; font-weight:600; color:var(--subtle); text-transform:uppercase; letter-spacing:.4px; }
+
+.btn-escalar { padding:8px 16px; background:var(--primary); color:#fff; border:none; border-radius:var(--radius-sm); font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(139,92,246,.25); transition:all .15s; }
+.btn-escalar:hover { background:var(--primary-hover); transform:translateY(-1px); }
+
+/* Team member cards */
+.team-list { display:flex; flex-direction:column; gap:10px; }
+.team-member { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:var(--radius); border:1px solid var(--border); background:var(--surface); transition:all .2s; }
+.team-member:hover { border-color:rgba(139,92,246,.25); box-shadow:0 2px 8px rgba(139,92,246,.06); }
+.team-avatar { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:#fff; flex-shrink:0; }
+.team-avatar.photo { background-size:cover; background-position:center; }
+.team-info { flex:1; min-width:0; }
+.team-name { font-size:13px; font-weight:700; color:var(--fg); }
+.team-role { font-size:11px; color:var(--subtle); margin-top:1px; }
+.team-meta { display:flex; align-items:center; gap:12px; flex-shrink:0; }
+.team-hours { font-size:11px; font-weight:600; color:var(--fg); background:var(--surface-2); padding:3px 10px; border-radius:6px; }
+.team-status { font-size:9px; font-weight:700; padding:3px 10px; border-radius:99px; text-transform:uppercase; letter-spacing:.4px; }
+.team-status.confirmado { background:rgba(34,197,94,.08); color:#16A34A; border:1px solid rgba(34,197,94,.2); }
+.team-status.pendente { background:rgba(245,158,11,.08); color:#D97706; border:1px solid rgba(245,158,11,.2); }
+.team-status.cancelado { background:rgba(239,68,68,.08); color:#DC2626; border:1px solid rgba(239,68,68,.2); }
+.team-remove { width:28px; height:28px; border-radius:6px; border:1px solid var(--border); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; color:var(--subtle); transition:all .15s; flex-shrink:0; }
+.team-remove:hover { border-color:var(--danger); color:var(--danger); background:rgba(239,68,68,.04); }
+
+/* Escalar modal (inline panel) */
+.escalar-panel { display:none; margin-top:16px; padding:16px; border-radius:var(--radius); border:1px solid var(--border); background:var(--surface-2); }
+.escalar-panel.active { display:block; }
+.escalar-search { width:100%; padding:9px 14px 9px 36px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); font-size:12px; outline:none; font-family:inherit; }
+.escalar-search:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(139,92,246,.1); }
+.escalar-filters { display:flex; gap:6px; margin:10px 0 14px; flex-wrap:wrap; }
+.escalar-chip { padding:4px 12px; border-radius:99px; border:1px solid var(--border); background:var(--surface); font-size:10px; font-weight:600; color:var(--muted); cursor:pointer; transition:all .15s; }
+.escalar-chip:hover, .escalar-chip.active { border-color:var(--primary); color:var(--primary); background:rgba(139,92,246,.04); }
+.freelancer-results { display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; }
+.freelancer-option { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); cursor:pointer; transition:all .15s; }
+.freelancer-option:hover { border-color:var(--primary); background:rgba(139,92,246,.02); }
+.freelancer-avatar { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:#fff; flex-shrink:0; }
+.freelancer-details { flex:1; min-width:0; }
+.freelancer-name { font-size:12px; font-weight:700; color:var(--fg); }
+.freelancer-spec { font-size:10px; color:var(--subtle); }
+.freelancer-tags { display:flex; gap:4px; margin-top:3px; }
+.freelancer-tag { font-size:8px; font-weight:700; padding:1px 6px; border-radius:3px; text-transform:uppercase; letter-spacing:.3px; }
+.freelancer-rating { font-size:11px; color:var(--warning); flex-shrink:0; }
+.freelancer-add-btn { padding:6px 14px; border-radius:var(--radius-sm); border:1px solid var(--primary); background:rgba(139,92,246,.04); color:var(--primary); font-size:10px; font-weight:700; cursor:pointer; flex-shrink:0; transition:all .15s; }
+.freelancer-add-btn:hover { background:var(--primary); color:#fff; }
+
+/* Section divider */
+.team-section-title { font-size:10px; font-weight:700; color:var(--subtle); text-transform:uppercase; letter-spacing:.6px; margin:20px 0 10px; display:flex; align-items:center; gap:8px; }
+.team-section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR (mesmo do preview-orcamentos) -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon">O</div>
+    <span>OLHARR</span>
+  </div>
+  <nav>
+    <a href="#"><span class="emoji">📊</span> Dashboard</a>
+    <a href="#"><span class="emoji">📋</span> Orçamentos</a>
+    <a href="#" class="active"><span class="emoji">🎬</span> Projetos</a>
+    <a href="#"><span class="emoji">👥</span> CRM</a>
+    <a href="#"><span class="emoji">✅</span> Tarefas</a>
+    <a href="#"><span class="emoji">💰</span> Financeiro</a>
+    <a href="#"><span class="emoji">🎓</span> Formaturas</a>
+    <a href="#"><span class="emoji">🎨</span> Talentos</a>
+    <a href="#"><span class="emoji">📦</span> Serviços</a>
+    <a href="#"><span class="emoji">⚙️</span> Configurações</a>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1><span class="icon">🎬</span> Gestão de Projetos / Eventos</h1>
+  </div>
+
+  <!-- View Tabs -->
+  <div class="view-tabs">
+    <button class="view-tab active">Kanban</button>
+    <button class="view-tab">Lista</button>
+    <button class="view-tab">Relatórios</button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <select id="filtroVertente">
+        <option>Todas as Vertentes</option>
+        <option>Casamentos</option>
+        <option>Eventos Corporativos</option>
+        <option>Ensaios</option>
+      </select>
+      <button class="filter-btn">🔍 Filtrar</button>
+      <div class="search-box">
+        <span class="s-icon">🔎</span>
+        <input type="text" placeholder="Buscar projetos..." id="searchInput">
+      </div>
+    </div>
+    <button class="btn-new">+ Novo Projeto</button>
+  </div>
+
+  <!-- Kanban Board -->
+  <div class="board">
+
+    <!-- Col: OS - Distribuição -->
+    <div class="kanban-col col-yellow">
+      <div class="col-header">
+        <h3>✅ OS - Distribuição <span class="count">1</span></h3>
+        <span style="cursor:pointer;color:var(--subtle);">+</span>
+      </div>
+      <div class="col-body">
+        <div class="card border-cyan" onclick="openModal('comed')">
+          <span class="card-badge badge-corporativo">Eventos Corporativos</span>
+          <div class="card-title">COMED-168 - Evento Tema Anos 2000</div>
+          <div class="card-fields">
+            <div class="card-field">
+              <span class="f-icon">📄</span>
+              <div><div class="f-label">Nº Orçamento - Evento</div><div class="f-value">COMED-168 - Evento Tema Anos 2000</div></div>
+            </div>
+            <div class="card-field">
+              <span class="f-icon">👤</span>
+              <div><div class="f-label">Cliente</div><div class="f-value">COMED 168</div></div>
+            </div>
+            <div class="card-field">
+              <span class="f-icon">💲</span>
+              <div><div class="f-label">Valor de Produção</div><div class="f-value">R$ 16.000,00</div></div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="sla-ok">✓ 22h</span>
+            <span class="card-footer-item">💬 1</span>
+          </div>
+        </div>
+        <button class="col-add-btn">+ Nova tarefa</button>
+      </div>
+    </div>
+
+    <!-- Col: Produção -->
+    <div class="kanban-col col-blue">
+      <div class="col-header">
+        <h3>✅ Produção <span class="count">1</span></h3>
+        <span style="cursor:pointer;color:var(--subtle);">+</span>
+      </div>
+      <div class="col-body">
+        <div class="card border-cyan" onclick="openModal('adv')">
+          <span class="card-badge badge-corporativo">Eventos Corporativos</span>
+          <div class="card-title">ADV-092 - Escritório Pinto & Soares</div>
+          <div class="card-fields">
+            <div class="card-field">
+              <span class="f-icon">📄</span>
+              <div><div class="f-label">Nº Orçamento - Evento</div><div class="f-value">ADV-092 - Escritório Pinto & Soares</div></div>
+            </div>
+            <div class="card-field">
+              <span class="f-icon">👤</span>
+              <div><div class="f-label">Cliente</div><div class="f-value">Pinto & Soares Adv</div></div>
+            </div>
+            <div class="card-field">
+              <span class="f-icon">💲</span>
+              <div><div class="f-label">Valor de Produção</div><div class="f-value">R$ 4.500,00</div></div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="sla-ok">✓ 2 dias</span>
+            <span class="card-footer-item">💬 1</span>
+          </div>
+        </div>
+        <button class="col-add-btn">+ Nova tarefa</button>
+      </div>
+    </div>
+
+    <!-- Col: Fila para Edição -->
+    <div class="kanban-col col-emerald">
+      <div class="col-header">
+        <h3>✅ Fila para Edição <span class="count">1</span></h3>
+        <span style="cursor:pointer;color:var(--subtle);">+</span>
+      </div>
+      <div class="col-body">
+        <div class="card border-rose" onclick="openModal('cas')">
+          <span class="card-badge badge-casamento">Casamentos</span>
+          <div class="card-title">CAS-405 - Casamento Mariana & Pedro</div>
+          <div class="card-fields">
+            <div class="card-field">
+              <span class="f-icon">👤</span>
+              <div><div class="f-label">Cliente</div><div class="f-value">Mariana Silva</div></div>
+            </div>
+            <div class="card-field">
+              <span class="f-icon">💲</span>
+              <div><div class="f-label">Valor de Produção</div><div class="f-value">R$ 12.500,00</div></div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="sla-warn">⏱ 5 dias</span>
+            <span class="card-footer-item">💬 1</span>
+          </div>
+        </div>
+        <button class="col-add-btn">+ Nova tarefa</button>
+      </div>
+    </div>
+
+    <!-- Col: Edição -->
+    <div class="kanban-col col-purple">
+      <div class="col-header">
+        <h3>✅ Edição <span class="count">0</span></h3>
+        <span style="cursor:pointer;color:var(--subtle);">+</span>
+      </div>
+      <div class="col-body">
+        <div class="empty-col">Nenhum card nesta fase</div>
+      </div>
+    </div>
+
+    <!-- Col: Aprovação Olharr -->
+    <div class="kanban-col col-rose">
+      <div class="col-header">
+        <h3>✅ Aprovação Olharr <span class="count">1</span></h3>
+        <span style="cursor:pointer;color:var(--subtle);">+</span>
+      </div>
+      <div class="col-body">
+        <div class="card border-teal" onclick="openModal('fot')">
+          <span class="card-badge badge-ensaio">Ensaios</span>
+          <div class="card-title">FOT-88 - Ensaio Gestante Clara</div>
+          <div class="card-fields">
+            <div class="card-field">
+              <span class="f-icon">👤</span>
+              <div><div class="f-label">Cliente</div><div class="f-value">Clara Martins</div></div>
+            </div>
+            <div class="card-field">
+              <span class="f-icon">💲</span>
+              <div><div class="f-label">Valor de Produção</div><div class="f-value">R$ 1.200,00</div></div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="sla-ok">✓ 1 dia</span>
+            <span class="card-footer-item">💬 1</span>
+          </div>
+        </div>
+        <button class="col-add-btn">+ Nova tarefa</button>
+      </div>
+    </div>
+
+    <!-- Col: Entrega Cliente -->
+    <div class="kanban-col col-orange">
+      <div class="col-header">
+        <h3>✅ Entrega Cliente <span class="count">0</span></h3>
+        <span style="cursor:pointer;color:var(--subtle);">+</span>
+      </div>
+      <div class="col-body">
+        <div class="empty-col">Nenhum card nesta fase</div>
+      </div>
+    </div>
+
+    <!-- Col: Alterações Cliente -->
+    <div class="kanban-col col-teal">
+      <div class="col-header">
+        <h3>✅ Alterações Cliente <span class="count">0</span></h3>
+        <span style="cursor:pointer;color:var(--subtle);">+</span>
+      </div>
+      <div class="col-body">
+        <div class="empty-col">Nenhum card nesta fase</div>
+      </div>
+    </div>
+
+    <!-- Col: Aprovado/Finalizado -->
+    <div class="kanban-col col-slate">
+      <div class="col-header">
+        <h3>✅ Aprovado / Finalizado <span class="count">0</span></h3>
+        <span style="cursor:pointer;color:var(--subtle);">+</span>
+      </div>
+      <div class="col-body">
+        <div class="empty-col">Nenhum card nesta fase</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Detalhe do Projeto (COMED-168) -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+
+    <!-- Modal Top -->
+    <div class="modal-top">
+      <div class="modal-top-row">
+        <h2 id="modalTitle">COMED-168 - Evento Tema Anos 2000</h2>
+        <div style="display:flex;gap:8px;">
+          <div class="modal-close" onclick="closeModal()">✕</div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button>👤 Adic. responsável</button>
+        <button>📅 Vencimento</button>
+        <button>⭐ Adicionar etiquetas</button>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="m-tab active" onclick="switchModalTab(event, 'tab-fase')">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#F59E0B;margin-right:6px;"></span>
+          OS - DISTRIBUIÇÃO
+        </button>
+        <button class="m-tab" onclick="switchModalTab(event, 'tab-atividades')">Atividades</button>
+        <button class="m-tab" onclick="switchModalTab(event, 'tab-anexos')">Anexos</button>
+        <button class="m-tab" onclick="switchModalTab(event, 'tab-checklists')">Checklists <span class="tab-count">3</span></button>
+        <button class="m-tab" onclick="switchModalTab(event, 'tab-equipe')">👥 Equipe <span class="tab-count">5</span></button>
+        <button class="m-tab">Comentários</button>
+        <button class="m-tab">Email</button>
+        <button class="m-tab">PDF</button>
+      </div>
+    </div>
+
+    <!-- Modal Body: 3 Columns -->
+    <div class="modal-body">
+
+      <!-- === TAB: FASE ATUAL (default) === -->
+      <div id="tab-fase" class="tab-content active" style="display:flex;flex:1;">
+
+        <!-- LEFT: Formulário Inicial -->
+        <div class="modal-col modal-col-left">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <div>
+              <h3 style="font-size:15px;font-weight:700;">Formulário Inicial</h3>
+              <p style="font-size:11px;color:var(--subtle);margin-top:2px;">Criado por Rafael M. • há 22h</p>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <div class="form-label"><span class="req">*</span> Nº do orçamento - Nome do Evento</div>
+            <div class="form-value">COMED-168 - Evento Tema Anos 2000</div>
+          </div>
+
+          <div class="form-field">
+            <div class="form-label"><span class="req">*</span> Cliente</div>
+            <div class="client-card">
+              <h4>COMED 168</h4>
+              <div class="client-grid">
+                <div><div class="c-label">Database</div><span class="client-db-badge">👥 CLIENTES</span></div>
+                <div><div class="c-label">Contato</div><div class="c-value">Rafa</div></div>
+                <div><div class="c-label">E-mail</div><div class="c-value">rafa@comed168.com.br</div></div>
+                <div><div class="c-label">Telefone</div><div class="c-value">+55 31 99999-7788</div></div>
+              </div>
+              <div class="client-footer">Criado em<br>03 de Março de 2026</div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <div class="form-label"><span class="req">*</span> Briefing</div>
+            <div class="briefing-box"><strong>Evento da turma COMED 168</strong>
+Data: 27/03
+Horário: 22h às 04h
+Local: Cine Teatro Brasil - Av. Amazonas, 315
+
+Equipe vendida:
+C1 Mobile
+C1 Editor de fotos real time
+C2 Fotógrafos
+C2 Cinegrafistas
+C1 Assistente Geral
+
+Entregas:
+Álbum de fotos
+Stories com entrevistas
+C1 Aftermovie de até 1:30 - formato a definir</div>
+          </div>
+
+          <div class="form-field">
+            <div class="form-label"><span class="req">*</span> Valor de Produção</div>
+            <div class="form-value" style="font-weight:600;">R$ 16.000,00</div>
+          </div>
+        </div>
+
+        <!-- MID: Fase Atual / Checklist -->
+        <div class="modal-col modal-col-mid">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+            <h3 style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;">
+              Fase atual
+              <span class="phase-badge" style="background:rgba(245,158,11,.1);color:#B45309;border:1px solid rgba(245,158,11,.25);">OS - DISTRIBUIÇÃO</span>
+            </h3>
+            <button style="font-size:11px;font-weight:600;color:var(--subtle);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;">🔗 Compartilhar</button>
+          </div>
+
+          <div class="form-label" style="margin-bottom:12px;">Tarefas nesta fase</div>
+          <div class="check-list">
+            <div class="check-item" onclick="toggleCheck(this)">
+              <div class="check-box done">✓</div>
+              <span class="check-text done">FAZER REUNIÃO DE KICK OFF COM EQUIPE COMERCIAL</span>
+            </div>
+            <div class="check-item" onclick="toggleCheck(this)">
+              <div class="check-box"></div>
+              <span class="check-text">ATENDIMENTO ENTRAR EM CONTATO COM O CLIENTE E SE APRESENTAR</span>
+            </div>
+            <div class="check-item" onclick="toggleCheck(this)">
+              <div class="check-box"></div>
+              <span class="check-text">MARCAR REUNIÃO DE BRIEFING COM O CLIENTE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Mover Card -->
+        <div class="modal-col modal-col-right">
+          <h3 style="font-size:13px;font-weight:700;margin-bottom:16px;">Mover card para fase</h3>
+
+          <button class="move-btn blue">PRODUÇÃO <span>→</span></button>
+          <button class="move-btn rose">APROVAÇÃO OLHARR <span>→</span></button>
+
+          <div style="margin-top:24px;display:flex;flex-direction:column;gap:8px;">
+            <button class="move-link">⚙️ Configurar mover cards</button>
+            <button class="move-link purple">✨ Mover cards com IA</button>
+          </div>
+
+          <!-- Floating AI button -->
+          <div style="position:absolute;bottom:24px;right:24px;">
+            <button style="width:48px;height:48px;background:var(--primary);color:#fff;border:none;border-radius:14px;box-shadow:0 4px 16px rgba(139,92,246,.35);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;">✨</button>
+          </div>
+        </div>
+
+      </div><!-- /tab-fase -->
+
+      <!-- === TAB: EQUIPE === -->
+      <div id="tab-equipe" class="tab-content" style="flex:1;padding:28px;">
+
+        <div class="team-header">
+          <div>
+            <h3>Equipe Escalada</h3>
+            <p style="font-size:11px;color:var(--subtle);margin-top:2px;">Profissionais alocados para este evento</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div class="team-stats">
+              <div class="team-stat">
+                <div class="stat-num">5</div>
+                <div class="stat-label">Escalados</div>
+              </div>
+              <div class="team-stat">
+                <div class="stat-num">4</div>
+                <div class="stat-label">Confirmados</div>
+              </div>
+              <div class="team-stat">
+                <div class="stat-num">26h</div>
+                <div class="stat-label">Total horas</div>
+              </div>
+            </div>
+            <button class="btn-escalar" onclick="toggleEscalarPanel()">+ Escalar Profissional</button>
+          </div>
+        </div>
+
+        <!-- Equipe escalada -->
+        <div class="team-section-title">Captação</div>
+        <div class="team-list">
+          <div class="team-member">
+            <div class="team-avatar" style="background:linear-gradient(135deg,var(--rose),#FB7185);">LP</div>
+            <div class="team-info">
+              <div class="team-name">Lucas Pereira</div>
+              <div class="team-role">Fotógrafo • Especialidade: Eventos</div>
+            </div>
+            <div class="team-meta">
+              <span class="team-hours">6h</span>
+              <span class="team-status confirmado">Confirmado</span>
+              <button class="team-remove" title="Remover">✕</button>
+            </div>
+          </div>
+          <div class="team-member">
+            <div class="team-avatar" style="background:linear-gradient(135deg,var(--cyan),#22D3EE);">BM</div>
+            <div class="team-info">
+              <div class="team-name">Bruna Martins</div>
+              <div class="team-role">Fotógrafa • Especialidade: Retratos</div>
+            </div>
+            <div class="team-meta">
+              <span class="team-hours">6h</span>
+              <span class="team-status confirmado">Confirmado</span>
+              <button class="team-remove" title="Remover">✕</button>
+            </div>
+          </div>
+          <div class="team-member">
+            <div class="team-avatar" style="background:linear-gradient(135deg,#6366F1,#818CF8);">TA</div>
+            <div class="team-info">
+              <div class="team-name">Thiago Alves</div>
+              <div class="team-role">Cinegrafista • Especialidade: Steadicam</div>
+            </div>
+            <div class="team-meta">
+              <span class="team-hours">6h</span>
+              <span class="team-status confirmado">Confirmado</span>
+              <button class="team-remove" title="Remover">✕</button>
+            </div>
+          </div>
+          <div class="team-member">
+            <div class="team-avatar" style="background:linear-gradient(135deg,var(--teal),#2DD4BF);">FC</div>
+            <div class="team-info">
+              <div class="team-name">Fernanda Costa</div>
+              <div class="team-role">Cinegrafista • Especialidade: Drone</div>
+            </div>
+            <div class="team-meta">
+              <span class="team-hours">6h</span>
+              <span class="team-status pendente">Pendente</span>
+              <button class="team-remove" title="Remover">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-section-title">Pós-Produção</div>
+        <div class="team-list">
+          <div class="team-member">
+            <div class="team-avatar" style="background:linear-gradient(135deg,var(--primary),#A78BFA);">DS</div>
+            <div class="team-info">
+              <div class="team-name">Daniel Souza</div>
+              <div class="team-role">Editor de Fotos • Real Time</div>
+            </div>
+            <div class="team-meta">
+              <span class="team-hours">2h</span>
+              <span class="team-status confirmado">Confirmado</span>
+              <button class="team-remove" title="Remover">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel de escalar -->
+        <div class="escalar-panel" id="escalarPanel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <h4 style="font-size:13px;font-weight:700;">Escalar do Banco de Talentos</h4>
+            <button style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--subtle);" onclick="toggleEscalarPanel()">✕</button>
+          </div>
+
+          <div style="position:relative;">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--subtle);font-size:13px;">🔎</span>
+            <input type="text" class="escalar-search" placeholder="Buscar por nome, especialidade..." id="searchFreelancer">
+          </div>
+
+          <div class="escalar-filters">
+            <button class="escalar-chip active">Todos</button>
+            <button class="escalar-chip">Fotógrafo</button>
+            <button class="escalar-chip">Cinegrafista</button>
+            <button class="escalar-chip">Editor</button>
+            <button class="escalar-chip">Assistente</button>
+            <button class="escalar-chip">Mobile</button>
+            <button class="escalar-chip">Drone</button>
+          </div>
+
+          <div class="freelancer-results">
+            <div class="freelancer-option">
+              <div class="freelancer-avatar" style="background:linear-gradient(135deg,#F97316,#FB923C);">RM</div>
+              <div class="freelancer-details">
+                <div class="freelancer-name">Ricardo Mendes</div>
+                <div class="freelancer-spec">Fotógrafo • 4 anos de experiência</div>
+                <div class="freelancer-tags">
+                  <span class="freelancer-tag" style="background:rgba(244,63,94,.08);color:#E11D48;">Casamentos</span>
+                  <span class="freelancer-tag" style="background:rgba(6,182,212,.08);color:#0891B2;">Eventos</span>
+                </div>
+              </div>
+              <span class="freelancer-rating">⭐ 4.8</span>
+              <button class="freelancer-add-btn">Escalar</button>
+            </div>
+            <div class="freelancer-option">
+              <div class="freelancer-avatar" style="background:linear-gradient(135deg,#EC4899,#F472B6);">JS</div>
+              <div class="freelancer-details">
+                <div class="freelancer-name">Juliana Santos</div>
+                <div class="freelancer-spec">Cinegrafista • Steadicam & Gimbal</div>
+                <div class="freelancer-tags">
+                  <span class="freelancer-tag" style="background:rgba(99,102,241,.08);color:#4F46E5;">Corporativo</span>
+                  <span class="freelancer-tag" style="background:rgba(20,184,166,.08);color:#0D9488;">Ensaios</span>
+                </div>
+              </div>
+              <span class="freelancer-rating">⭐ 4.9</span>
+              <button class="freelancer-add-btn">Escalar</button>
+            </div>
+            <div class="freelancer-option">
+              <div class="freelancer-avatar" style="background:linear-gradient(135deg,#22C55E,#4ADE80);">PO</div>
+              <div class="freelancer-details">
+                <div class="freelancer-name">Pedro Oliveira</div>
+                <div class="freelancer-spec">Assistente Geral • 2 anos</div>
+                <div class="freelancer-tags">
+                  <span class="freelancer-tag" style="background:rgba(245,158,11,.08);color:#D97706;">Disponível</span>
+                </div>
+              </div>
+              <span class="freelancer-rating">⭐ 4.5</span>
+              <button class="freelancer-add-btn">Escalar</button>
+            </div>
+            <div class="freelancer-option">
+              <div class="freelancer-avatar" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA);">AC</div>
+              <div class="freelancer-details">
+                <div class="freelancer-name">Amanda Carvalho</div>
+                <div class="freelancer-spec">Editor de Vídeo • After Effects & DaVinci</div>
+                <div class="freelancer-tags">
+                  <span class="freelancer-tag" style="background:rgba(139,92,246,.08);color:#7C3AED;">Pós-Produção</span>
+                </div>
+              </div>
+              <span class="freelancer-rating">⭐ 4.7</span>
+              <button class="freelancer-add-btn">Escalar</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /tab-equipe -->
+
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal(id) {
+  document.getElementById('detailModal').classList.add('active');
+  // Reset to first tab
+  switchModalTab(null, 'tab-fase');
+  document.querySelectorAll('.m-tab')[0].classList.add('active');
+}
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('active');
+}
+function toggleCheck(el) {
+  const box = el.querySelector('.check-box');
+  const text = el.querySelector('.check-text');
+  box.classList.toggle('done');
+  text.classList.toggle('done');
+  if (box.classList.contains('done')) {
+    box.textContent = '✓';
+  } else {
+    box.textContent = '';
+  }
+}
+function switchModalTab(event, tabId) {
+  // Deactivate all tabs
+  document.querySelectorAll('.m-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => {
+    c.classList.remove('active');
+    c.style.display = 'none';
+  });
+  // Activate clicked tab
+  if (event) event.target.closest('.m-tab').classList.add('active');
+  const target = document.getElementById(tabId);
+  if (target) {
+    target.classList.add('active');
+    target.style.display = 'flex';
+  }
+}
+function toggleEscalarPanel() {
+  document.getElementById('escalarPanel').classList.toggle('active');
+}
+// Filter chips
+document.querySelectorAll('.escalar-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.escalar-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('active'); });
+});
+</script>
+</body>
+</html>

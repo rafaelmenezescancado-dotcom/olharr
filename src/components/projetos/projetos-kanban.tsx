@@ -9,14 +9,14 @@ import type { ProjetosByStage, ProjectWithRelations } from '@/modules/projetos/t
 import type { ProjectStage } from '@/generated/prisma/client'
 
 const STAGE_COLORS: Record<ProjectStage, string> = {
-  OS_DISTRIBUICAO: '#8B82A0',
+  OS_DISTRIBUICAO: '#9B96B0',
   PRE_PRODUCAO: '#1E7FCD',
   DIA_DO_EVENTO: '#F59E0B',
-  POS_PRODUCAO: '#B52774',
-  EDICAO: '#8B5CF6',
+  POS_PRODUCAO: '#8B5CF6',
+  EDICAO: '#6366F1',
   REVISAO: '#EC4899',
   ENTREGUE: '#22C55E',
-  ARQUIVADO: '#6B6280',
+  ARQUIVADO: '#9B96B0',
 }
 
 interface ProjetosKanbanProps {

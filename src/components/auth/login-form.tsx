@@ -29,7 +29,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium" style={{ color: '#F0EDF5' }}>
+        <label className="text-sm font-medium" style={{ color: '#1C1730' }}>
           Email
         </label>
         <input
@@ -38,13 +38,13 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
-          className="h-10 w-full rounded-md px-3 text-sm"
-          style={{ background: '#252035', border: '1px solid #3A3550', color: '#F0EDF5' }}
+          className="h-10 w-full rounded-lg px-3 text-sm outline-none"
+          style={{ background: '#FFFFFF', border: '1px solid #E8E3F5', color: '#1C1730' }}
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium" style={{ color: '#F0EDF5' }}>
+        <label className="text-sm font-medium" style={{ color: '#1C1730' }}>
           Senha
         </label>
         <input
@@ -53,8 +53,8 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           autoComplete="current-password"
-          className="h-10 w-full rounded-md px-3 text-sm"
-          style={{ background: '#252035', border: '1px solid #3A3550', color: '#F0EDF5' }}
+          className="h-10 w-full rounded-lg px-3 text-sm outline-none"
+          style={{ background: '#FFFFFF', border: '1px solid #E8E3F5', color: '#1C1730' }}
         />
       </div>
 
@@ -67,8 +67,8 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="h-10 w-full rounded-md text-sm font-semibold transition-opacity disabled:opacity-50"
-        style={{ background: '#B52774', color: '#FFFFFF' }}
+        className="h-10 w-full rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50"
+        style={{ background: '#8B5CF6', color: '#FFFFFF' }}
       >
         {isPending ? 'Entrando...' : 'Entrar'}
       </button>

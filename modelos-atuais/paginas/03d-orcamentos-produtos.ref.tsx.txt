@@ -1,0 +1,31 @@
+// 03d - Orçamentos > Banco de Produtos (/orcamentos-produtos)
+// STATUS: NOVO — Precisa ser construído do zero
+// DESCRIÇÃO: Banco de dados de produtos/serviços da OLHARR
+//            cadastrados com descrição e valores pré-definidos
+// ROTA PLANEJADA: /orcamentos-produtos (ou /produtos)
+
+// TODO: Definir no novo design (Gemini)
+// FUNCIONALIDADES NECESSÁRIAS:
+// - Listagem/grid de produtos com busca e filtros
+// - Cadastro de produto: nome, descrição, categoria, valor unitário
+// - Edição e exclusão de produtos
+// - Importação rápida de produtos ao criar orçamento
+// - Categorias de produtos (ex: equipamento, serviço, locação, etc.)
+//
+// SCHEMA PRISMA NECESSÁRIO:
+// model Produto {
+//   id          String   @id @default(cuid())
+//   nome        String
+//   descricao   String?
+//   categoria   String?
+//   valorUnitario Float
+//   unidade     String?  // ex: "diária", "unidade", "hora"
+//   ativo       Boolean  @default(true)
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+// }
+
+export default function OrcamentosProdutosPage() {
+  // Placeholder — implementar com novo design
+  return null;
+}

@@ -1,0 +1,15 @@
+// 03c - Orçamentos > Custos (/orcamentos-detalhes/[id])
+// STATUS: NOVO — Ainda não existe no código atual
+// DESCRIÇÃO: Tela de custos detalhados de um orçamento específico
+// ROTA PLANEJADA: /orcamentos-detalhes/[id]
+
+// TODO: Definir no novo design (Gemini)
+// - Listagem de custos por categoria
+// - Subtotais e total geral
+// - CRUD de itens de custo
+// - Vinculação com o orçamento pai
+
+export default function OrcamentoCustosPage() {
+  // Placeholder — implementar com novo design
+  return null;
+}

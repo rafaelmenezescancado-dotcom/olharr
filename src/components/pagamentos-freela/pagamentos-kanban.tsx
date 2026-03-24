@@ -23,11 +23,11 @@ const FASE_LABELS: Record<FasePagamentoFreelancer, string> = {
 }
 
 const FASE_COLORS: Record<FasePagamentoFreelancer, string> = {
-  CONTRATACAO: '#8B82A0',
+  CONTRATACAO: '#9B96B0',
   AGUARDANDO_EVENTO: '#F59E0B',
   LANCAMENTO_DRE: '#1E7FCD',
   PAGO: '#22C55E',
-  ARQUIVADO: '#6B6280',
+  ARQUIVADO: '#9B96B0',
 }
 
 type Pagamento = {

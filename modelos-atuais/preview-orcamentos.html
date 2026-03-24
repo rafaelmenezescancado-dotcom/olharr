@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OLHARR — Preview Orçamentos</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg: #F0EDFF; --surface: #FFFFFF; --surface-2: #F7F5FF;
+  --border: #E8E3F5; --fg: #1C1730; --muted: #676767; --subtle: #9B96B0;
+  --primary: #8B5CF6; --primary-hover: #7C4FE0;
+  --accent: #1E7FCD; --success: #22C55E; --warning: #F59E0B; --danger: #EF4444;
+  --radius: 12px; --radius-sm: 8px;
+}
+body { font-family:'Poppins',system-ui,sans-serif; background:linear-gradient(145deg,#ede9ff,#f8f6ff 45%,#e8e3ff); background-attachment:fixed; color:var(--fg); font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; }
+::selection { background:var(--primary); color:#fff; }
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:#d0c8f0; border-radius:3px; }
+
+/* Sidebar */
+.sidebar { width:220px; background:rgba(255,255,255,.55); backdrop-filter:blur(16px); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; height:100vh; position:sticky; top:0; }
+.sidebar-logo { display:flex; align-items:center; gap:10px; height:64px; padding:0 18px; border-bottom:1px solid var(--border); }
+.sidebar-logo .icon { width:32px; height:32px; background:var(--primary); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; }
+.sidebar-logo span { font-weight:700; font-size:13px; letter-spacing:.2em; color:#393939; }
+.sidebar nav { flex:1; overflow-y:auto; padding:16px 10px; display:flex; flex-direction:column; gap:2px; }
+.sidebar a { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:12px; text-decoration:none; color:var(--muted); font-size:13px; font-weight:500; transition:all .15s; cursor:pointer; }
+.sidebar a:hover { background:rgba(139,92,246,.06); }
+.sidebar a.active { background:var(--primary); color:#fff; }
+.sidebar a .emoji { width:20px; text-align:center; }
+
+/* Main */
+.main { flex:1; padding:24px 32px; overflow-y:auto; max-width:1400px; }
+
+/* Header */
+.header { display:flex; justify-content:space-between; align-items:center; gap:16px; background:var(--surface); padding:16px 20px; border-radius:var(--radius); border:1px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,.04); flex-wrap:wrap; }
+.header h1 { font-size:18px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.header h1 .icon { color:var(--primary); }
+.header-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.search-box { position:relative; }
+.search-box input { width:200px; padding:8px 12px 8px 34px; background:#f8f6ff; border:1px solid var(--border); border-radius:8px; font-size:13px; outline:none; transition:all .2s; }
+.search-box input:focus { background:#fff; border-color:var(--primary); box-shadow:0 0 0 3px rgba(139,92,246,.1); }
+.search-box .icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--subtle); font-size:14px; }
+select { padding:8px 12px; background:#f8f6ff; border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--fg); cursor:pointer; outline:none; }
+.btn-primary { padding:8px 16px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all .15s; box-shadow:0 2px 8px rgba(139,92,246,.25); }
+.btn-primary:hover { background:var(--primary-hover); }
+
+/* Stats */
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:20px; }
+.stat-card { background:var(--surface); padding:16px; border-radius:var(--radius); border:1px solid var(--border); display:flex; align-items:center; gap:14px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+.stat-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.stat-icon.purple { background:rgba(139,92,246,.1); color:var(--primary); }
+.stat-icon.amber { background:rgba(245,158,11,.1); color:var(--warning); }
+.stat-icon.green { background:rgba(34,197,94,.1); color:var(--success); }
+.stat-icon.blue { background:rgba(30,127,205,.1); color:var(--accent); }
+.stat-label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+.stat-value { font-size:20px; font-weight:700; margin-top:2px; }
+
+/* Kanban */
+.kanban { display:flex; gap:16px; margin-top:20px; overflow-x:auto; padding-bottom:8px; }
+.kanban-col { flex:1; min-width:260px; max-width:320px; display:flex; flex-direction:column; }
+.kanban-header { padding:12px 16px; border-radius:var(--radius) var(--radius) 0 0; display:flex; justify-content:space-between; align-items:center; }
+.kanban-header h3 { font-size:13px; font-weight:700; display:flex; align-items:center; gap:6px; }
+.kanban-header .count { font-size:11px; font-weight:700; padding:2px 8px; border-radius:99px; background:rgba(255,255,255,.6); color:var(--fg); }
+.kanban-body { flex:1; padding:10px; border-radius:0 0 var(--radius) var(--radius); overflow-y:auto; max-height:520px; display:flex; flex-direction:column; gap:10px; }
+
+.col-amber .kanban-header { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.2); border-bottom:none; }
+.col-amber .kanban-header h3 { color:#b45309; }
+.col-amber .kanban-body { background:rgba(245,158,11,.03); border:1px solid rgba(245,158,11,.2); border-top:none; }
+
+.col-purple .kanban-header { background:rgba(139,92,246,.08); border:1px solid rgba(139,92,246,.2); border-bottom:none; }
+.col-purple .kanban-header h3 { color:var(--primary); }
+.col-purple .kanban-body { background:rgba(139,92,246,.03); border:1px solid rgba(139,92,246,.2); border-top:none; }
+
+.col-green .kanban-header { background:rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.2); border-bottom:none; }
+.col-green .kanban-header h3 { color:#16a34a; }
+.col-green .kanban-body { background:rgba(34,197,94,.03); border:1px solid rgba(34,197,94,.2); border-top:none; }
+
+.col-rose .kanban-header { background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.2); border-bottom:none; }
+.col-rose .kanban-header h3 { color:#dc2626; }
+.col-rose .kanban-body { background:rgba(239,68,68,.03); border:1px solid rgba(239,68,68,.2); border-top:none; }
+
+/* Card */
+.card { background:var(--surface); padding:14px; border-radius:10px; border:1px solid var(--border); cursor:pointer; transition:all .2s; }
+.card:hover { box-shadow:0 4px 12px rgba(139,92,246,.12); border-color:rgba(139,92,246,.3); transform:translateY(-1px); }
+.card-top { display:flex; justify-content:space-between; align-items:start; margin-bottom:6px; }
+.badge { padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+.badge-casamento { background:rgba(244,63,94,.08); color:#e11d48; border:1px solid rgba(244,63,94,.15); }
+.badge-formatura { background:rgba(139,92,246,.08); color:var(--primary); border:1px solid rgba(139,92,246,.15); }
+.badge-evento { background:rgba(217,70,239,.08); color:#c026d3; border:1px solid rgba(217,70,239,.15); }
+.badge-corporativo { background:rgba(6,182,212,.08); color:#0891b2; border:1px solid rgba(6,182,212,.15); }
+.card-date { font-size:11px; color:var(--subtle); }
+.card-title { font-weight:700; font-size:14px; margin-bottom:4px; line-height:1.3; }
+.card-client { font-size:12px; font-weight:600; color:var(--primary); margin-bottom:8px; display:flex; align-items:center; gap:4px; }
+.card-footer { display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px solid var(--border); margin-top:auto; }
+.card-price { font-weight:700; font-size:14px; }
+.card-items { font-size:11px; color:var(--subtle); }
+.card-tags { display:flex; gap:4px; margin-top:8px; }
+.card-tag { font-size:10px; padding:2px 6px; border-radius:4px; background:rgba(139,92,246,.06); color:var(--primary); font-weight:600; }
+
+/* Modal Overlay */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(28,23,48,.6); backdrop-filter:blur(4px); z-index:100; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.active { display:flex; }
+.modal { background:var(--surface); border-radius:16px; width:100%; max-width:1100px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 24px 48px rgba(0,0,0,.15); }
+.modal-header { padding:20px 28px; border-bottom:1px solid var(--border); background:var(--surface-2); display:flex; justify-content:space-between; align-items:start; gap:16px; }
+.modal-header-info { flex:1; }
+.modal-header-badges { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+.modal-header h2 { font-size:22px; font-weight:700; letter-spacing:-.3px; }
+.modal-header-meta { display:flex; gap:16px; margin-top:8px; font-size:13px; color:var(--muted); flex-wrap:wrap; }
+.modal-header-meta a { color:var(--primary); font-weight:600; text-decoration:none; background:rgba(139,92,246,.08); padding:2px 8px; border-radius:6px; }
+.modal-close { width:36px; height:36px; border-radius:99px; border:1px solid var(--border); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:18px; color:var(--muted); transition:all .15s; flex-shrink:0; }
+.modal-close:hover { background:var(--surface-2); color:var(--fg); }
+.modal-body { flex:1; overflow-y:auto; padding:24px 28px; background:rgba(248,246,255,.5); }
+.modal-grid { display:grid; grid-template-columns:2fr 1fr; gap:24px; }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; margin-bottom:20px; background:var(--surface-2); padding:4px; border-radius:10px; border:1px solid var(--border); }
+.tab { padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; transition:all .15s; border:none; background:none; }
+.tab.active { background:var(--surface); color:var(--primary); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.tab:hover:not(.active) { color:var(--fg); }
+
+/* Table */
+.table-wrap { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden; }
+.table-header { padding:14px 20px; border-bottom:1px solid var(--border); background:var(--surface-2); display:flex; justify-content:space-between; align-items:center; }
+.table-header h3 { font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.table-header h3 .icon { color:var(--primary); }
+table { width:100%; text-align:left; font-size:13px; border-collapse:collapse; }
+thead { background:var(--surface-2); }
+thead th { padding:10px 20px; font-size:11px; text-transform:uppercase; letter-spacing:.5px; font-weight:700; color:var(--subtle); border-bottom:1px solid var(--border); }
+tbody td { padding:12px 20px; border-bottom:1px solid rgba(232,227,245,.5); }
+tbody tr:hover { background:rgba(248,246,255,.5); }
+.cat-label { font-size:10px; color:var(--subtle); text-transform:uppercase; letter-spacing:.3px; }
+
+/* Viability */
+.viability { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); padding:20px; margin-top:16px; }
+.viability h4 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--subtle); margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+.viability-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; background:var(--surface); padding:20px; border-radius:10px; border:1px solid var(--border); }
+.viability-left { border-right:1px solid var(--border); padding-right:20px; }
+.cost-row { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+.cost-row .label { color:var(--muted); }
+.cost-row .value { font-weight:600; color:var(--danger); }
+.cost-total { display:flex; justify-content:space-between; font-size:14px; font-weight:700; padding-top:10px; border-top:1px solid var(--border); margin-top:8px; }
+.viability-right { padding-left:4px; }
+.sale-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--subtle); }
+.sale-value { font-size:24px; font-weight:800; color:var(--primary); margin-top:4px; }
+.margin-row { display:flex; justify-content:space-between; align-items:end; margin-top:16px; margin-bottom:8px; }
+.margin-pct { font-size:28px; font-weight:800; color:var(--success); line-height:1; }
+.margin-label { font-size:13px; font-weight:700; color:var(--fg); }
+.margin-profit { font-size:11px; font-weight:700; color:var(--subtle); }
+.bar-wrap { height:12px; background:#f1f0f5; border-radius:6px; overflow:hidden; display:flex; box-shadow:inset 0 1px 2px rgba(0,0,0,.06); }
+.bar-cost { background:var(--danger); height:100%; transition:width .5s; }
+.bar-margin { background:var(--success); height:100%; transition:width .5s; }
+.bar-labels { display:flex; justify-content:space-between; margin-top:4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--subtle); }
+
+/* Side cards */
+.side-card { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); padding:16px; margin-bottom:16px; }
+.side-card h3 { font-size:13px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+.side-card h3 .icon { color:var(--primary); }
+.side-row { display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; }
+.side-row .label { color:var(--muted); }
+.side-row .value { font-weight:700; }
+.side-row .value.primary { color:var(--primary); }
+.side-row .value.big { font-size:17px; color:var(--primary); }
+
+/* Cost Builder */
+.cost-builder-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.cost-chip { padding:8px 14px; border-radius:20px; font-size:12px; font-weight:600; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:6px; }
+.cost-chip:hover { border-color:var(--primary); background:rgba(139,92,246,.05); color:var(--primary); }
+.cost-chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.cost-chip .chip-icon { font-size:14px; }
+.add-form { background:var(--surface); border:2px solid var(--primary); border-radius:var(--radius); padding:16px 20px; margin-bottom:16px; display:none; animation:slideDown .2s ease; }
+.add-form.visible { display:block; }
+@keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+.add-form-title { font-size:13px; font-weight:700; color:var(--primary); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.add-form-row { display:flex; gap:12px; align-items:end; flex-wrap:wrap; }
+.add-form-field { display:flex; flex-direction:column; gap:4px; }
+.add-form-field label { font-size:11px; font-weight:700; color:var(--subtle); text-transform:uppercase; letter-spacing:.5px; }
+.add-form-field input, .add-form-field select { padding:8px 12px; border-radius:8px; border:1px solid var(--border); font-size:13px; background:var(--surface-2); outline:none; }
+.add-form-field input:focus, .add-form-field select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(139,92,246,.1); }
+.btn-add { padding:8px 20px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all .15s; white-space:nowrap; }
+.btn-add:hover { background:var(--primary-hover); }
+.cost-list { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden; }
+.cost-list-header { padding:12px 20px; background:var(--surface-2); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.cost-list-header h3 { font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.cost-list-empty { padding:32px 20px; text-align:center; color:var(--muted); font-size:13px; }
+.cost-item { display:flex; align-items:center; padding:12px 20px; border-bottom:1px solid rgba(232,227,245,.5); gap:12px; transition:background .1s; }
+.cost-item:hover { background:rgba(248,246,255,.5); }
+.cost-item-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+.cost-item-info { flex:1; min-width:0; }
+.cost-item-name { font-size:13px; font-weight:700; }
+.cost-item-desc { font-size:11px; color:var(--muted); margin-top:1px; }
+.cost-item-hours { font-size:12px; font-weight:600; color:var(--subtle); background:var(--surface-2); padding:4px 10px; border-radius:6px; white-space:nowrap; }
+.cost-item-value { font-size:14px; font-weight:700; color:var(--danger); min-width:90px; text-align:right; }
+.cost-item-remove { width:28px; height:28px; border-radius:6px; border:none; background:transparent; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; transition:all .15s; }
+.cost-item-remove:hover { background:rgba(239,68,68,.1); color:var(--danger); }
+
+/* Versions & Tasks */
+.version-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(232,227,245,.5); }
+.version-num { width:28px; height:28px; border-radius:8px; background:rgba(139,92,246,.1); color:var(--primary); font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; }
+.version-info { flex:1; }
+.version-info .title { font-size:13px; font-weight:600; }
+.version-info .meta { font-size:11px; color:var(--muted); }
+.version-value { font-weight:700; font-size:13px; }
+
+.task-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(232,227,245,.5); }
+.task-check { width:18px; height:18px; border-radius:5px; border:2px solid var(--border); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; }
+.task-check.done { background:var(--success); border-color:var(--success); color:#fff; }
+.task-title { flex:1; font-size:13px; }
+.task-title.done { text-decoration:line-through; color:var(--subtle); }
+.task-priority { font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; }
+.task-priority.alta { background:rgba(239,68,68,.1); color:var(--danger); }
+.task-priority.media { background:rgba(245,158,11,.1); color:var(--warning); }
+
+/* Action buttons */
+.action-row { display:flex; gap:12px; margin-top:20px; }
+.btn-outline { flex:1; padding:12px; border-radius:10px; font-size:13px; font-weight:700; border:1px solid var(--border); background:var(--surface); color:var(--fg); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all .15s; }
+.btn-outline:hover { background:var(--surface-2); }
+.btn-action { flex:1; padding:12px; border-radius:10px; font-size:13px; font-weight:700; border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all .15s; box-shadow:0 4px 12px rgba(0,0,0,.15); }
+.btn-action.purple { background:var(--primary); }
+.btn-action.purple:hover { background:var(--primary-hover); }
+.btn-action.green { background:var(--success); }
+.btn-action.green:hover { background:#16a34a; }
+
+/* Status select */
+.status-select { padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); font-size:13px; font-weight:600; cursor:pointer; }
+
+/* Responsive */
+@media (max-width:1200px) { .modal-grid { grid-template-columns:1fr; } }
+@media (max-width:768px) { .stats { grid-template-columns:1fr 1fr; } .sidebar { display:none; } }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon">O</div>
+    <span>OLHARR</span>
+  </div>
+  <nav>
+    <a href="#"><span class="emoji">📊</span> Dashboard</a>
+    <a href="#" class="active"><span class="emoji">📋</span> Orçamentos</a>
+    <a href="#"><span class="emoji">📁</span> Projetos</a>
+    <a href="#"><span class="emoji">👥</span> CRM</a>
+    <a href="#"><span class="emoji">✅</span> Tarefas</a>
+    <a href="#"><span class="emoji">💰</span> Financeiro</a>
+    <a href="#"><span class="emoji">🎓</span> Formaturas</a>
+    <a href="#"><span class="emoji">🎨</span> Talentos</a>
+    <a href="#"><span class="emoji">📦</span> Produtos</a>
+    <a href="#"><span class="emoji">⚙️</span> Configurações</a>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HEADER + FILTERS -->
+  <div class="header">
+    <h1><span class="icon">📋</span> Gestão de Orçamentos</h1>
+    <div class="header-actions">
+      <div class="search-box">
+        <span class="icon">🔍</span>
+        <input type="text" placeholder="Pesquisar...">
+      </div>
+      <select>
+        <option>Todas as Vertentes</option>
+        <option>Casamento</option>
+        <option>Formatura</option>
+        <option>Evento</option>
+        <option>Corporativo</option>
+      </select>
+      <select>
+        <option>Todos os Períodos</option>
+        <option>Este mês</option>
+        <option>Último trimestre</option>
+      </select>
+      <button class="btn-primary" onclick="document.getElementById('createModal').classList.add('active')">+ Novo</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-icon purple">📊</div>
+      <div><div class="stat-label">Propostas</div><div class="stat-value">12</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber">⏳</div>
+      <div><div class="stat-label">Em Negociação</div><div class="stat-value">R$ 48.500</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">📈</div>
+      <div><div class="stat-label">Taxa Aprovação</div><div class="stat-value">67%</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue">💲</div>
+      <div><div class="stat-label">Ticket Médio</div><div class="stat-value">R$ 8.420</div></div>
+    </div>
+  </div>
+
+  <!-- KANBAN -->
+  <div class="kanban">
+    <!-- Em Elaboração -->
+    <div class="kanban-col col-amber">
+      <div class="kanban-header"><h3>⏱ Em Elaboração</h3><span class="count">3</span></div>
+      <div class="kanban-body">
+        <div class="card" onclick="openModal()">
+          <div class="card-top"><span class="badge badge-casamento">Casamento</span><span class="card-date">12 mar 2026</span></div>
+          <div class="card-title">Cobertura Casamento Bruna e Rafael</div>
+          <div class="card-client">👤 Bruna Oliveira</div>
+          <div class="card-tags"><span class="card-tag">v2</span><span class="card-tag">2 tarefas</span></div>
+          <div class="card-footer"><span class="card-price">R$ 12.500</span><span class="card-items">8 itens</span></div>
+        </div>
+        <div class="card">
+          <div class="card-top"><span class="badge badge-formatura">Formatura</span><span class="card-date">8 mar 2026</span></div>
+          <div class="card-title">Eng. Unificada UFMG 2026</div>
+          <div class="card-client">👤 Comissão Eng. UFMG</div>
+          <div class="card-footer"><span class="card-price">R$ 890/formando</span><span class="card-items">28 formandos</span></div>
+        </div>
+        <div class="card">
+          <div class="card-top"><span class="badge badge-evento">Evento</span><span class="card-date">5 mar 2026</span></div>
+          <div class="card-title">Aniversário 30 anos Melissa</div>
+          <div class="card-client">👤 Melissa Santos</div>
+          <div class="card-footer"><span class="card-price">R$ 3.800</span><span class="card-items">5 itens</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Aguardando -->
+    <div class="kanban-col col-purple">
+      <div class="kanban-header"><h3>📩 Aguardando Resposta</h3><span class="count">2</span></div>
+      <div class="kanban-body">
+        <div class="card">
+          <div class="card-top"><span class="badge badge-corporativo">Corporativo</span><span class="card-date">1 mar 2026</span></div>
+          <div class="card-title">Cobertura Evento AMCHAM</div>
+          <div class="card-client">👤 AMCHAM BH</div>
+          <div class="card-tags"><span class="card-tag">v3</span></div>
+          <div class="card-footer"><span class="card-price">R$ 9.200</span><span class="card-items">6 itens</span></div>
+        </div>
+        <div class="card">
+          <div class="card-top"><span class="badge badge-casamento">Casamento</span><span class="card-date">25 fev 2026</span></div>
+          <div class="card-title">Marie e Henrique - Completo</div>
+          <div class="card-client">👤 Marie Dupont</div>
+          <div class="card-footer"><span class="card-price">R$ 18.900</span><span class="card-items">12 itens</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Aprovados -->
+    <div class="kanban-col col-green">
+      <div class="kanban-header"><h3>✅ Aprovados</h3><span class="count">4</span></div>
+      <div class="kanban-body">
+        <div class="card">
+          <div class="card-top"><span class="badge badge-casamento">Casamento</span><span class="card-date">20 fev 2026</span></div>
+          <div class="card-title">Victor e Iasmin</div>
+          <div class="card-client">👤 Victor Almeida</div>
+          <div class="card-footer"><span class="card-price">R$ 7.800</span><span class="card-items">6 itens</span></div>
+        </div>
+        <div class="card">
+          <div class="card-top"><span class="badge badge-formatura">Formatura</span><span class="card-date">15 fev 2026</span></div>
+          <div class="card-title">Odonto UFMG - 40 formandos</div>
+          <div class="card-client">👤 Comissão Odonto</div>
+          <div class="card-footer"><span class="card-price">R$ 720/form.</span><span class="card-items">40 form.</span></div>
+        </div>
+        <div class="card">
+          <div class="card-top"><span class="badge badge-corporativo">Corporativo</span><span class="card-date">10 fev 2026</span></div>
+          <div class="card-title">Boston Scientific - Convenção</div>
+          <div class="card-client">👤 Boston Scientific</div>
+          <div class="card-footer"><span class="card-price">R$ 15.200</span><span class="card-items">9 itens</span></div>
+        </div>
+        <div class="card">
+          <div class="card-top"><span class="badge badge-evento">Evento</span><span class="card-date">8 fev 2026</span></div>
+          <div class="card-title">Loot Studios 5 Anos</div>
+          <div class="card-client">👤 Loot Studios</div>
+          <div class="card-footer"><span class="card-price">R$ 5.600</span><span class="card-items">4 itens</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Recusados -->
+    <div class="kanban-col col-rose">
+      <div class="kanban-header"><h3>❌ Recusados</h3><span class="count">1</span></div>
+      <div class="kanban-body">
+        <div class="card">
+          <div class="card-top"><span class="badge badge-evento">Evento</span><span class="card-date">1 fev 2026</span></div>
+          <div class="card-title">Rap Game BH 2026</div>
+          <div class="card-client">👤 Produtora XYZ</div>
+          <div class="card-footer"><span class="card-price">R$ 4.200</span><span class="card-items">3 itens</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-header-badges">
+          <span class="badge badge-casamento">Casamento</span>
+          <span style="font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:2px 10px;border-radius:99px;">Criado em 12 mar 2026</span>
+        </div>
+        <h2>Cobertura Casamento Bruna e Rafael</h2>
+        <div class="modal-header-meta">
+          <a href="#">👤 Bruna Oliveira — Ver no CRM ↗</a>
+          <span>📅 Evento: 11 set 2025</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <select class="status-select">
+          <option>Rascunho</option>
+          <option selected>Enviado</option>
+          <option>Aprovado</option>
+          <option>Recusado</option>
+        </select>
+        <div class="modal-close" onclick="closeModal()">✕</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(this,'itens')">📝 Itens & Viabilidade</button>
+        <button class="tab" onclick="switchTab(this,'wizard')">💰 Descrição de Custos</button>
+        <button class="tab" onclick="switchTab(this,'versoes')">📑 Versões (2)</button>
+        <button class="tab" onclick="switchTab(this,'tarefas')">✅ Tarefas (3)</button>
+      </div>
+
+      <!-- TAB: Itens -->
+      <div class="tab-content" id="tab-itens">
+        <div class="modal-grid">
+          <div>
+            <!-- Items Table -->
+            <div class="table-wrap">
+              <div class="table-header">
+                <h3><span class="icon">📝</span> Composição do Orçamento</h3>
+                <button class="btn-primary" style="font-size:12px;padding:6px 12px;">+ Editar Itens</button>
+              </div>
+              <table>
+                <thead>
+                  <tr><th>Item / Serviço</th><th style="text-align:center">Qtd</th><th style="text-align:right">Custo Unit.</th><th style="text-align:right">Custo Total</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>Fotógrafos × 8h captação</strong><br><span class="cat-label">Equipe</span></td><td style="text-align:center">2</td><td style="text-align:right;color:var(--muted)">R$ 600/prof</td><td style="text-align:right;color:var(--danger);font-weight:700">R$ 2.400</td></tr>
+                  <tr><td><strong>Videomakers × 8h captação</strong><br><span class="cat-label">Equipe</span></td><td style="text-align:center">2</td><td style="text-align:right;color:var(--muted)">R$ 600/prof</td><td style="text-align:right;color:var(--danger);font-weight:700">R$ 2.400</td></tr>
+                  <tr><td><strong>Ensaio Pré-Wedding 2H</strong><br><span class="cat-label">Fotografia</span></td><td style="text-align:center">1</td><td style="text-align:right;color:var(--muted)">R$ 500</td><td style="text-align:right;color:var(--danger);font-weight:700">R$ 500</td></tr>
+                  <tr><td><strong>Making Of (Noivos)</strong><br><span class="cat-label">Fotografia</span></td><td style="text-align:center">1</td><td style="text-align:right;color:var(--muted)">R$ 300</td><td style="text-align:right;color:var(--danger);font-weight:700">R$ 300</td></tr>
+                  <tr><td><strong>Drone</strong><br><span class="cat-label">Vídeo</span></td><td style="text-align:center">1</td><td style="text-align:right;color:var(--muted)">R$ 500</td><td style="text-align:right;color:var(--danger);font-weight:700">R$ 500</td></tr>
+                  <tr><td><strong>Aftermovie 3min</strong><br><span class="cat-label">Vídeo</span></td><td style="text-align:center">1</td><td style="text-align:right;color:var(--muted)">R$ 1.400</td><td style="text-align:right;color:var(--danger);font-weight:700">R$ 1.400</td></tr>
+                  <tr><td><strong>Álbum Tipo 2</strong><br><span class="cat-label">Extras</span></td><td style="text-align:center">1</td><td style="text-align:right;color:var(--muted)">R$ 800</td><td style="text-align:right;color:var(--danger);font-weight:700">R$ 800</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Viability -->
+            <div class="viability">
+              <h4>📊 Análise de Viabilidade</h4>
+              <div class="viability-grid">
+                <div class="viability-left">
+                  <h5 style="font-size:13px;font-weight:700;margin-bottom:10px;">Resumo de Custos</h5>
+                  <div class="cost-row"><span class="label">Equipe (2 fot + 2 vid × 8h)</span><span class="value">- R$ 4.800</span></div>
+                  <div class="cost-row"><span class="label">Fotografia (2 entregas)</span><span class="value">- R$ 800</span></div>
+                  <div class="cost-row"><span class="label">Vídeo (2 entregas)</span><span class="value">- R$ 1.900</span></div>
+                  <div class="cost-row"><span class="label">Extras (álbum)</span><span class="value">- R$ 800</span></div>
+                  <div class="cost-total"><span>Total Custos</span><span style="color:var(--danger)">R$ 8.300</span></div>
+                </div>
+                <div class="viability-right">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <div class="sale-label" style="margin:0;">Margem Desejada</div>
+                    <select style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--foreground);padding:4px 8px;font-size:14px;font-weight:700;">
+                      <option>25%</option>
+                      <option selected>30%</option>
+                      <option>35%</option>
+                      <option>40%</option>
+                      <option>50%</option>
+                    </select>
+                  </div>
+                  <div class="sale-value">R$ 11.857</div>
+                  <div class="margin-row">
+                    <div><div class="margin-label">Lucro Estimado</div></div>
+                    <div style="text-align:right">
+                      <div class="margin-pct">30%</div>
+                      <div class="margin-profit">Lucro: R$ 3.557</div>
+                    </div>
+                  </div>
+                  <div class="bar-wrap">
+                    <div class="bar-cost" style="width:70%"></div>
+                    <div class="bar-margin" style="width:30%"></div>
+                  </div>
+                  <div class="bar-labels"><span>Custos (70%)</span><span>Margem (30%)</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <button class="btn-outline">✏️ Editar Orçamento</button>
+              <button class="btn-action purple">📩 Marcar como Enviado</button>
+            </div>
+          </div>
+
+          <!-- Sidebar -->
+          <div>
+            <div class="side-card">
+              <h3><span class="icon">📄</span> Resumo</h3>
+              <div class="side-row"><span class="label">Total Custos</span><span class="value" style="color:var(--danger)">R$ 8.300</span></div>
+              <div class="side-row"><span class="label">Margem</span><span class="value primary">30%</span></div>
+              <div style="padding-top:8px;border-top:1px solid var(--border);margin-top:8px;">
+                <div class="side-row"><span class="label">Total de Venda</span><span class="value big">R$ 11.857</span></div>
+              </div>
+            </div>
+            <div class="side-card">
+              <h3><span class="icon">👤</span> Cliente</h3>
+              <p style="font-weight:600;">Bruna Oliveira</p>
+              <p style="font-size:12px;color:var(--muted);">Pessoa Física</p>
+              <a href="#" style="font-size:13px;color:var(--primary);font-weight:600;text-decoration:none;margin-top:8px;display:inline-block;">Ver no CRM ↗</a>
+            </div>
+            <div class="side-card">
+              <h3><span class="icon">📝</span> Observações</h3>
+              <p style="font-size:13px;color:var(--muted);">Cliente quer cobertura completa com ênfase no aftermovie. Prefere entrega em até 45 dias.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Descrição de Custos -->
+      <div class="tab-content" id="tab-wizard" style="display:none;">
+        <div style="background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.15);border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">💰</span>
+          <div>
+            <strong style="font-size:13px;">Descrição de Custos — Casamento</strong>
+            <p style="font-size:12px;color:var(--muted);margin-top:2px;">Selecione o serviço, defina horas e descrição, depois clique em Adicionar. A margem é definida na aba Viabilidade.</p>
+          </div>
+        </div>
+
+        <!-- Service chips -->
+        <div class="cost-builder-chips" id="serviceChips">
+          <button class="cost-chip" onclick="selectService('fotografo')"><span class="chip-icon">📷</span> Fotógrafo</button>
+          <button class="cost-chip" onclick="selectService('videomaker')"><span class="chip-icon">🎬</span> Videomaker</button>
+          <button class="cost-chip" onclick="selectService('drone')"><span class="chip-icon">🚁</span> Drone</button>
+          <button class="cost-chip" onclick="selectService('edicao_realtime')"><span class="chip-icon">⚡</span> Edição Real Time Fotos</button>
+          <button class="cost-chip" onclick="selectService('aftermovie')"><span class="chip-icon">🎞️</span> Aftermovie</button>
+          <button class="cost-chip" onclick="selectService('ensaio')"><span class="chip-icon">💍</span> Ensaio Pré-Wedding</button>
+          <button class="cost-chip" onclick="selectService('making_of')"><span class="chip-icon">💄</span> Making Of</button>
+          <button class="cost-chip" onclick="selectService('album')"><span class="chip-icon">📖</span> Álbum</button>
+          <button class="cost-chip" onclick="selectService('outro')"><span class="chip-icon">➕</span> Outro</button>
+        </div>
+
+        <!-- Add form (hidden by default) -->
+        <div class="add-form" id="addForm">
+          <div class="add-form-title" id="addFormTitle">📷 Adicionar Fotógrafo</div>
+          <div class="add-form-row">
+            <div class="add-form-field" id="hoursField">
+              <label>Horas</label>
+              <select id="addHours" style="min-width:100px;">
+                <option>1h</option><option>2h</option><option>3h</option><option>4h</option><option>5h</option><option selected>6h</option><option>7h</option><option>8h</option><option>9h</option><option>10h</option><option>12h</option>
+              </select>
+            </div>
+            <div class="add-form-field" id="optionField" style="display:none;">
+              <label>Opção</label>
+              <select id="addOption" style="min-width:160px;"></select>
+            </div>
+            <div class="add-form-field" style="flex:1;">
+              <label>Descrição (opcional)</label>
+              <input type="text" id="addDesc" placeholder="Ex: cerimônia + recepção" style="width:100%;">
+            </div>
+            <div class="add-form-field">
+              <label>Custo</label>
+              <div id="addCostPreview" style="padding:8px 12px;font-size:14px;font-weight:700;color:var(--danger);">R$ 900,00</div>
+            </div>
+            <button class="btn-add" onclick="addCostItem()">+ ADICIONAR</button>
+          </div>
+        </div>
+
+        <!-- Cost items list -->
+        <div class="cost-list">
+          <div class="cost-list-header">
+            <h3>📋 Itens de Custo</h3>
+            <span id="costItemCount" style="font-size:12px;color:var(--muted);font-weight:600;">7 itens</span>
+          </div>
+          <div id="costItems">
+            <div class="cost-item">
+              <div class="cost-item-icon" style="background:rgba(139,92,246,.08);">📷</div>
+              <div class="cost-item-info">
+                <div class="cost-item-name">Fotógrafo</div>
+                <div class="cost-item-desc">Recepção</div>
+              </div>
+              <div class="cost-item-hours">6h</div>
+              <div class="cost-item-value">R$ 900,00</div>
+              <button class="cost-item-remove" onclick="this.closest('.cost-item').remove();updateTotal();">✕</button>
+            </div>
+            <div class="cost-item">
+              <div class="cost-item-icon" style="background:rgba(139,92,246,.08);">📷</div>
+              <div class="cost-item-info">
+                <div class="cost-item-name">Fotógrafo</div>
+                <div class="cost-item-desc">Cerimônia + Recepção</div>
+              </div>
+              <div class="cost-item-hours">9h</div>
+              <div class="cost-item-value">R$ 1.200,00</div>
+              <button class="cost-item-remove" onclick="this.closest('.cost-item').remove();updateTotal();">✕</button>
+            </div>
+            <div class="cost-item">
+              <div class="cost-item-icon" style="background:rgba(217,70,239,.08);">🎬</div>
+              <div class="cost-item-info">
+                <div class="cost-item-name">Videomaker</div>
+                <div class="cost-item-desc">Cerimônia + Recepção</div>
+              </div>
+              <div class="cost-item-hours">9h</div>
+              <div class="cost-item-value">R$ 1.200,00</div>
+              <button class="cost-item-remove" onclick="this.closest('.cost-item').remove();updateTotal();">✕</button>
+            </div>
+            <div class="cost-item">
+              <div class="cost-item-icon" style="background:rgba(217,70,239,.08);">🎬</div>
+              <div class="cost-item-info">
+                <div class="cost-item-name">Videomaker</div>
+                <div class="cost-item-desc">Recepção</div>
+              </div>
+              <div class="cost-item-hours">6h</div>
+              <div class="cost-item-value">R$ 900,00</div>
+              <button class="cost-item-remove" onclick="this.closest('.cost-item').remove();updateTotal();">✕</button>
+            </div>
+            <div class="cost-item">
+              <div class="cost-item-icon" style="background:rgba(245,158,11,.08);">⚡</div>
+              <div class="cost-item-info">
+                <div class="cost-item-name">Edição Real Time Fotos</div>
+                <div class="cost-item-desc">Cerimônia + Recepção</div>
+              </div>
+              <div class="cost-item-hours">9h</div>
+              <div class="cost-item-value">R$ 600,00</div>
+              <button class="cost-item-remove" onclick="this.closest('.cost-item').remove();updateTotal();">✕</button>
+            </div>
+            <div class="cost-item">
+              <div class="cost-item-icon" style="background:rgba(30,127,205,.08);">🎞️</div>
+              <div class="cost-item-info">
+                <div class="cost-item-name">Aftermovie</div>
+                <div class="cost-item-desc">3 minutos</div>
+              </div>
+              <div class="cost-item-hours">—</div>
+              <div class="cost-item-value">R$ 1.400,00</div>
+              <button class="cost-item-remove" onclick="this.closest('.cost-item').remove();updateTotal();">✕</button>
+            </div>
+            <div class="cost-item">
+              <div class="cost-item-icon" style="background:rgba(34,197,94,.08);">📖</div>
+              <div class="cost-item-info">
+                <div class="cost-item-name">Álbum</div>
+                <div class="cost-item-desc">Tipo 2</div>
+              </div>
+              <div class="cost-item-hours">—</div>
+              <div class="cost-item-value">R$ 800,00</div>
+              <button class="cost-item-remove" onclick="this.closest('.cost-item').remove();updateTotal();">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div style="background:var(--surface);border:2px solid var(--primary);border-radius:var(--radius);padding:16px 20px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <span style="font-size:11px;font-weight:700;color:var(--subtle);text-transform:uppercase;letter-spacing:.5px;">Total de Custos</span>
+            <div id="totalCost" style="font-size:24px;font-weight:800;color:var(--danger);">R$ 7.000,00</div>
+            <p style="font-size:11px;color:var(--muted);margin-top:4px;">A margem e valor de venda são definidos na aba "Itens & Viabilidade"</p>
+          </div>
+          <button class="btn-action purple" style="padding:12px 24px;font-size:14px;" onclick="alert('Custos aplicados ao orçamento!')">Aplicar ao Orçamento</button>
+        </div>
+      </div>
+
+      <!-- TAB: Versões -->
+      <div class="tab-content" id="tab-versoes" style="display:none;">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3><span class="icon">📑</span> Histórico de Versões</h3>
+            <button class="btn-primary" style="font-size:12px;padding:6px 12px;">+ Criar Versão</button>
+          </div>
+          <div style="padding:16px 20px;">
+            <div class="version-item">
+              <div class="version-num">v2</div>
+              <div class="version-info">
+                <div class="title">Versão atual — Adicionado drone e aftermovie</div>
+                <div class="meta">Criada por Rafael • 12 mar 2026 às 14:30</div>
+              </div>
+              <div class="version-value">R$ 11.457</div>
+            </div>
+            <div class="version-item">
+              <div class="version-num">v1</div>
+              <div class="version-info">
+                <div class="title">Versão inicial — Somente fotografia</div>
+                <div class="meta">Criada por Rafael • 10 mar 2026 às 09:15</div>
+              </div>
+              <div class="version-value" style="color:var(--muted);text-decoration:line-through;">R$ 5.429</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:12px;padding:0 4px;">💡 Uma versão é criada automaticamente antes de enviar ao cliente, ou manualmente clicando em "Criar Versão".</p>
+      </div>
+
+      <!-- TAB: Tarefas -->
+      <div class="tab-content" id="tab-tarefas" style="display:none;">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3><span class="icon">✅</span> Tarefas Vinculadas</h3>
+            <button class="btn-primary" style="font-size:12px;padding:6px 12px;">+ Nova Tarefa</button>
+          </div>
+          <div style="padding:16px 20px;">
+            <div class="task-item">
+              <div class="task-check done">✓</div>
+              <div class="task-title done">Levantar disponibilidade de fotógrafos para setembro</div>
+              <span class="task-priority media">MÉDIA</span>
+            </div>
+            <div class="task-item">
+              <div class="task-check"></div>
+              <div class="task-title">Confirmar local do ensaio pré-wedding com a noiva</div>
+              <span class="task-priority alta">ALTA</span>
+            </div>
+            <div class="task-item">
+              <div class="task-check"></div>
+              <div class="task-title">Enviar proposta revisada (v2) por e-mail</div>
+              <span class="task-priority alta">ALTA</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CREATE MODAL -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h2 style="font-size:18px;">Novo Orçamento</h2>
+      <div class="modal-close" onclick="document.getElementById('createModal').classList.remove('active')">✕</div>
+    </div>
+    <div class="modal-body" style="padding:20px 28px;">
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Cliente *</label>
+        <select style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;background:var(--surface-2);">
+          <option>Selecionar...</option><option>Bruna Oliveira</option><option>AMCHAM BH</option><option>Comissão Eng. UFMG</option>
+        </select>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Título *</label>
+        <input type="text" placeholder="Ex: Cobertura Casamento" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;background:var(--surface-2);">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Vertente *</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <label style="padding:8px 14px;border-radius:8px;border:2px solid var(--primary);background:rgba(139,92,246,.08);font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;">💒 Casamento</label>
+          <label style="padding:8px 14px;border-radius:8px;border:2px solid var(--border);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;">🎓 Formatura</label>
+          <label style="padding:8px 14px;border-radius:8px;border:2px solid var(--border);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;">🎉 Evento</label>
+          <label style="padding:8px 14px;border-radius:8px;border:2px solid var(--border);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;">🏢 Corporativo</label>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Data do Evento</label><input type="date" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;background:var(--surface-2);"></div>
+        <div><label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Válido até</label><input type="date" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;background:var(--surface-2);"></div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Observações</label>
+        <textarea rows="2" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;background:var(--surface-2);resize:none;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;padding-top:8px;">
+        <button class="btn-outline" onclick="document.getElementById('createModal').classList.remove('active')" style="flex:1;">Cancelar</button>
+        <button class="btn-action purple" style="flex:1;">Criar Orçamento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal() { document.getElementById('detailModal').classList.add('active'); }
+function closeModal() { document.getElementById('detailModal').classList.remove('active'); }
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  document.getElementById('tab-' + tabId).style.display = 'block';
+}
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('active'); });
+});
+
+/* ===== Cost Builder Logic ===== */
+const services = {
+  fotografo:       { icon:'📷', label:'Fotógrafo',            color:'rgba(139,92,246,.08)', perHour:150, type:'hours' },
+  videomaker:      { icon:'🎬', label:'Videomaker',            color:'rgba(217,70,239,.08)', perHour:150, type:'hours' },
+  drone:           { icon:'🚁', label:'Drone',                 color:'rgba(30,127,205,.08)', perHour:120, type:'hours' },
+  edicao_realtime: { icon:'⚡', label:'Edição Real Time Fotos', color:'rgba(245,158,11,.08)', perHour:67,  type:'hours' },
+  aftermovie:      { icon:'🎞️', label:'Aftermovie',            color:'rgba(30,127,205,.08)', type:'option', options:[
+    {name:'1 minuto', cost:800}, {name:'3 minutos', cost:1400}, {name:'5 minutos', cost:2000}, {name:'10 minutos', cost:3500}
+  ]},
+  ensaio:          { icon:'💍', label:'Ensaio Pré-Wedding',    color:'rgba(244,63,94,.08)', type:'option', options:[
+    {name:'1h - 20 fotos', cost:350}, {name:'2h - 40 fotos', cost:500}, {name:'3h - 60 fotos', cost:700}
+  ]},
+  making_of:       { icon:'💄', label:'Making Of',             color:'rgba(217,70,239,.08)', type:'option', options:[
+    {name:'Noivos', cost:300}, {name:'Noivo', cost:200}, {name:'Noiva', cost:200}
+  ]},
+  album:           { icon:'📖', label:'Álbum',                 color:'rgba(34,197,94,.08)', type:'option', options:[
+    {name:'Tipo 1', cost:500}, {name:'Tipo 2', cost:800}, {name:'Tipo 3', cost:1200}, {name:'Tipo 4', cost:1800}
+  ]},
+  outro:           { icon:'➕', label:'Outro',                  color:'rgba(139,92,246,.08)', type:'custom' }
+};
+
+let currentService = null;
+
+function selectService(key) {
+  currentService = key;
+  const svc = services[key];
+  // Update chip active state
+  document.querySelectorAll('.cost-chip').forEach(c => c.classList.remove('active'));
+  event.target.closest('.cost-chip').classList.add('active');
+
+  const form = document.getElementById('addForm');
+  const hoursField = document.getElementById('hoursField');
+  const optionField = document.getElementById('optionField');
+  const descInput = document.getElementById('addDesc');
+
+  form.classList.add('visible');
+  document.getElementById('addFormTitle').innerHTML = svc.icon + ' Adicionar ' + svc.label;
+  descInput.value = '';
+
+  if (svc.type === 'hours') {
+    hoursField.style.display = '';
+    optionField.style.display = 'none';
+    updateHourCost();
+  } else if (svc.type === 'option') {
+    hoursField.style.display = 'none';
+    optionField.style.display = '';
+    const sel = document.getElementById('addOption');
+    sel.innerHTML = svc.options.map((o,i) =>
+      '<option value="'+i+'"'+(i===1?' selected':'')+'>'+o.name+'</option>'
+    ).join('');
+    updateOptionCost();
+  } else {
+    hoursField.style.display = '';
+    optionField.style.display = 'none';
+    updateHourCost();
+  }
+}
+
+function updateHourCost() {
+  if (!currentService) return;
+  const svc = services[currentService];
+  const hours = parseInt(document.getElementById('addHours').value);
+  const cost = (svc.perHour || 100) * hours;
+  document.getElementById('addCostPreview').textContent = formatBRL(cost);
+}
+
+function updateOptionCost() {
+  if (!currentService) return;
+  const svc = services[currentService];
+  const idx = document.getElementById('addOption').value;
+  const cost = svc.options[idx].cost;
+  document.getElementById('addCostPreview').textContent = formatBRL(cost);
+}
+
+document.getElementById('addHours').addEventListener('change', updateHourCost);
+document.getElementById('addOption').addEventListener('change', updateOptionCost);
+
+function formatBRL(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function addCostItem() {
+  if (!currentService) return;
+  const svc = services[currentService];
+  const desc = document.getElementById('addDesc').value;
+  let hours = '—', cost = 0, subtitle = desc;
+
+  if (svc.type === 'hours') {
+    hours = document.getElementById('addHours').value;
+    cost = svc.perHour * parseInt(hours);
+    if (!subtitle) subtitle = '';
+  } else if (svc.type === 'option') {
+    const idx = document.getElementById('addOption').value;
+    const opt = svc.options[idx];
+    cost = opt.cost;
+    subtitle = desc ? opt.name + ' — ' + desc : opt.name;
+  } else {
+    hours = document.getElementById('addHours').value;
+    cost = 100 * parseInt(hours);
+  }
+
+  const html = `
+    <div class="cost-item">
+      <div class="cost-item-icon" style="background:${svc.color};">${svc.icon}</div>
+      <div class="cost-item-info">
+        <div class="cost-item-name">${svc.label}</div>
+        <div class="cost-item-desc">${subtitle || '—'}</div>
+      </div>
+      <div class="cost-item-hours">${hours}</div>
+      <div class="cost-item-value">${formatBRL(cost)}</div>
+      <button class="cost-item-remove" onclick="this.closest('.cost-item').remove();updateTotal();">✕</button>
+    </div>`;
+
+  document.getElementById('costItems').insertAdjacentHTML('beforeend', html);
+  updateTotal();
+
+  // Reset form
+  document.getElementById('addDesc').value = '';
+  document.getElementById('addForm').classList.remove('visible');
+  document.querySelectorAll('.cost-chip').forEach(c => c.classList.remove('active'));
+  currentService = null;
+}
+
+function updateTotal() {
+  const items = document.querySelectorAll('#costItems .cost-item-value');
+  let total = 0;
+  items.forEach(el => {
+    const v = el.textContent.replace('R$','').replace(/\./g,'').replace(',','.').trim();
+    total += parseFloat(v) || 0;
+  });
+  document.getElementById('totalCost').textContent = formatBRL(total);
+  document.getElementById('costItemCount').textContent = items.length + ' ite' + (items.length === 1 ? 'm' : 'ns');
+}
+
+// Init total on load
+updateTotal();
+</script>
+</body>
+</html>

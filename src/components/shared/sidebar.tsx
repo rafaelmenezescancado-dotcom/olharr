@@ -68,7 +68,7 @@ export function Sidebar({ user }: SidebarProps) {
         background: 'rgba(255,255,255,0.55)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        borderRight: '1px solid #2e2a40',
+        borderRight: '1px solid #E8E3F5',
       }}
     >
       {/* Logo */}

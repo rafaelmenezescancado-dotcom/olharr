@@ -9,13 +9,13 @@ import type { ClientsByStage, ClientWithContatos } from '@/modules/crm/types'
 import type { CrmStage } from '@/generated/prisma/client'
 
 const STAGE_COLORS: Record<CrmStage, string> = {
-  NOVO_LEAD: '#8B82A0',
+  NOVO_LEAD: '#9B96B0',
   PRIMEIRO_CONTATO: '#1E7FCD',
   PROPOSTA_ENVIADA: '#F59E0B',
-  NEGOCIACAO: '#B52774',
+  NEGOCIACAO: '#8B5CF6',
   FECHADO_GANHO: '#22C55E',
   FECHADO_PERDIDO: '#EF4444',
-  INATIVO: '#6B6280',
+  INATIVO: '#9B96B0',
 }
 
 interface CrmKanbanProps {

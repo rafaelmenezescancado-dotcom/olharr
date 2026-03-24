@@ -28,7 +28,7 @@ const STATUS_LABELS: Record<PostStatus, string> = {
 }
 
 const STATUS_COLORS: Record<PostStatus, string> = {
-  RASCUNHO: '#8B82A0',
+  RASCUNHO: '#9B96B0',
   AGUARDANDO_APROVACAO: '#F59E0B',
   APROVADO: '#22C55E',
   PUBLICADO: '#1E7FCD',

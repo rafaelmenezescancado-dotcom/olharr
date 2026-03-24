@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OLHARR — Orçamento Detalhe (Redesign v2)</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #F0EDFF;
+    --surface: #FFFFFF;
+    --surface-2: #F7F5FF;
+    --border: #E8E3F5;
+    --border-subtle: #F0EDFF;
+    --fg: #1C1730;
+    --muted: #676767;
+    --subtle: #9B96B0;
+    --primary: #8B5CF6;
+    --primary-hover: #7C4FE0;
+    --accent: #1E7FCD;
+    --success: #22C55E;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(145deg, #ede9ff 0%, #f8f6ff 45%, #e8e3ff 100%);
+    background-attachment: fixed;
+    color: var(--fg);
+    min-height: 100vh;
+    display: flex;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--primary); color: white; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d0c8f0; border-radius: 3px; }
+
+  /* ─── Sidebar (glassmorphism fiel ao app) ─── */
+  .sidebar {
+    width: 220px;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid #2e2a40;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 10px;
+    height: 64px; padding: 0 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-logo .icon {
+    width: 32px; height: 32px; background: var(--primary);
+    border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-weight: 700; font-size: 13px; color: #fff;
+  }
+
+  .sidebar-logo span { font-weight: 700; font-size: 13px; letter-spacing: 0.2em; color: #393939; }
+
+  .sidebar nav {
+    flex: 1; overflow-y: auto; padding: 16px 10px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+
+  .sidebar a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; border-radius: 12px; text-decoration: none;
+    color: var(--muted); font-size: 13px; font-weight: 500;
+    transition: all 0.15s; white-space: nowrap;
+  }
+
+  .sidebar a:hover { background: rgba(139,92,246,0.06); }
+  .sidebar a.active { background: var(--primary); color: #fff; }
+
+  .sidebar-bottom {
+    padding: 12px; border-top: 1px solid var(--border);
+  }
+
+  .sidebar-bottom .user-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+
+  .sidebar-bottom .avatar {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #5523c6 100%);
+    border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-weight: 700; font-size: 12px; color: #fff;
+  }
+
+  .sidebar-bottom .info .name { font-size: 13px; font-weight: 600; color: var(--fg); }
+  .sidebar-bottom .info .role { color: var(--primary); font-weight: 600; font-size: 11px; letter-spacing: 0.08em; }
+
+  .sidebar-bottom .logout-btn {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    padding: 8px 12px; border-radius: 12px; border: none;
+    background: rgba(139,92,246,0.06); color: var(--muted);
+    font-size: 12px; font-weight: 500; font-family: inherit; cursor: pointer;
+  }
+
+  /* ─── Main ─── */
+  .main {
+    flex: 1; padding: 28px 36px; max-width: 1060px;
+    overflow-y: auto; height: 100vh;
+  }
+
+  /* ─── Breadcrumb ─── */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--subtle); margin-bottom: 20px;
+  }
+  .breadcrumb a { color: var(--muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--primary); }
+
+  /* ─── Page header ─── */
+  .page-header {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; margin-bottom: 24px;
+  }
+
+  .page-header h1 { font-size: 22px; font-weight: 700; color: var(--fg); line-height: 1.3; }
+  .page-header .meta { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .page-header .meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--subtle); }
+
+  .page-header .actions { display: flex; align-items: center; gap: 8px; }
+
+  /* ─── Buttons ─── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; padding: 8px 14px;
+    border-radius: var(--radius-sm); border: 1px solid transparent;
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .btn-ghost { background: var(--surface); border-color: var(--border); color: var(--muted); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--fg); }
+  .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-sm { padding: 6px 12px; font-size: 11px; }
+
+  /* ─── Status select ─── */
+  .status-select {
+    padding: 8px 32px 8px 14px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--fg); font-size: 13px; font-weight: 500;
+    font-family: inherit; outline: none; cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B96B0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .status-select:focus { border-color: var(--primary); }
+
+  /* ─── Cabeçalho Resumo (stat cards) ─── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 6px;
+    position: relative;
+  }
+
+  .stat-card .color-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .stat-card .label { font-size: 11px; font-weight: 500; color: var(--muted); }
+
+  .stat-card .value {
+    font-size: 20px; font-weight: 700; color: var(--fg); line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-card .value.red { color: var(--danger); }
+  .stat-card .value.green { color: var(--success); }
+  .stat-card .value.blue { color: var(--accent); }
+  .stat-card .value.muted { color: var(--subtle); }
+
+  .stat-card .sub { font-size: 11px; color: var(--subtle); }
+
+  .stat-card .adjust-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600; color: var(--accent);
+    background: rgba(30,127,205,0.08); border: none;
+    padding: 4px 10px; border-radius: 6px; cursor: pointer;
+    font-family: inherit; margin-top: 2px; width: fit-content;
+    transition: background 0.15s;
+  }
+  .stat-card .adjust-btn:hover { background: rgba(30,127,205,0.15); }
+
+  /* NF card */
+  .nf-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 8px;
+    min-width: 140px;
+  }
+
+  .nf-card .label { font-size: 11px; font-weight: 500; color: var(--muted); }
+
+  .nf-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+
+  .nf-value { font-size: 13px; font-weight: 600; color: var(--fg); }
+
+  /* Toggle */
+  .toggle {
+    position: relative; width: 36px; height: 20px;
+    background: #d0c8f0; border-radius: 10px;
+    cursor: pointer; transition: background 0.2s;
+    border: none; flex-shrink: 0;
+  }
+  .toggle.active { background: var(--primary); }
+  .toggle::after {
+    content: ''; position: absolute;
+    top: 2px; left: 2px; width: 16px; height: 16px;
+    background: white; border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle.active::after { transform: translateX(16px); }
+
+  /* ─── Section ─── */
+  .section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 16px; overflow: hidden;
+  }
+
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+  }
+
+  .section-header h2 {
+    font-size: 13px; font-weight: 600; color: var(--fg);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .section-header h2 .count {
+    font-size: 11px; font-weight: 600; background: var(--surface-2);
+    color: var(--muted); padding: 2px 8px; border-radius: 10px;
+  }
+
+  /* ─── Tabs (Custos Previstos) ─── */
+  .tabs {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+  }
+
+  .tab {
+    padding: 10px 16px; font-size: 12px; font-weight: 600;
+    color: var(--muted); cursor: pointer; border: none;
+    background: none; font-family: inherit;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--fg); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* ─── Produtos cadastráveis ─── */
+  .products-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px; padding: 16px 20px;
+  }
+
+  .product-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface-2);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .product-card:hover { border-color: var(--primary); background: rgba(139,92,246,0.04); }
+
+  .product-card .product-info { display: flex; flex-direction: column; }
+  .product-card .product-name { font-size: 12px; font-weight: 600; color: var(--fg); }
+  .product-card .product-price { font-size: 11px; color: var(--muted); }
+
+  .product-card .add-icon {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: rgba(139,92,246,0.08); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+  }
+
+  /* ─── Table ─── */
+  .table-header {
+    display: grid;
+    grid-template-columns: 1fr 100px 130px 40px;
+    padding: 10px 20px; font-size: 11px; font-weight: 600;
+    color: var(--subtle); background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 130px 40px;
+    padding: 12px 20px; align-items: center;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.1s;
+  }
+  .table-row:last-child { border-bottom: none; }
+  .table-row:hover { background: var(--surface-2); }
+
+  .table-row .desc { font-size: 13px; font-weight: 500; color: var(--fg); }
+  .table-row .qty { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: center; }
+  .table-row .cost { font-size: 13px; font-weight: 600; color: var(--fg); font-variant-numeric: tabular-nums; }
+
+  .table-row .delete-btn {
+    opacity: 0; background: none; border: none;
+    color: var(--danger); cursor: pointer; padding: 4px;
+    border-radius: 6px; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .table-row:hover .delete-btn { opacity: 1; }
+  .table-row .delete-btn:hover { background: rgba(239,68,68,0.08); }
+
+  .table-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; background: var(--surface-2);
+    border-top: 1px solid var(--border);
+  }
+  .table-footer .total-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .table-footer .total-value { font-size: 17px; font-weight: 700; color: var(--fg); font-variant-numeric: tabular-nums; }
+
+  /* ─── Margem modal inline ─── */
+  .margin-panel {
+    display: none;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    margin-bottom: 16px;
+  }
+  .margin-panel.open { display: block; }
+
+  .margin-panel h3 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+
+  .margin-input {
+    width: 80px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 8px 10px;
+    color: var(--fg); font-size: 14px; font-weight: 600;
+    font-family: inherit; text-align: right; outline: none;
+  }
+  .margin-input:focus { border-color: var(--primary); }
+
+  .margin-row {
+    display: flex; align-items: center; gap: 16px;
+  }
+
+  .margin-result-box {
+    background: var(--surface-2); border-radius: var(--radius-sm);
+    padding: 10px 14px; display: flex; justify-content: space-between;
+    align-items: center; margin-top: 12px;
+  }
+
+  /* ─── SVG ─── */
+  .icon-svg {
+    width: 15px; height: 15px; stroke: currentColor;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none;
+  }
+
+  /* ─── Empty state ─── */
+  .empty-state {
+    padding: 32px 20px; text-align: center;
+    font-size: 13px; color: var(--subtle);
+  }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 20px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .products-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon">O</div>
+    <span>OLHARR</span>
+  </div>
+  <nav>
+    <a href="#">📊 Dashboard</a>
+    <a href="#" class="active">📋 Orçamentos</a>
+    <a href="#">🎬 Projetos</a>
+    <a href="#">👥 CRM</a>
+    <a href="#">✅ Tarefas</a>
+    <a href="#">💰 Fluxo de Caixa</a>
+    <a href="#">💲 Financeiro</a>
+    <a href="#">💳 Pag. Freelancers</a>
+    <a href="#">⭐ Banco de Talentos</a>
+    <a href="#">🚚 Fornecedores</a>
+    <a href="#">📅 Agenda</a>
+    <a href="#">📱 Calendário Social</a>
+    <a href="#">🎓 Formaturas</a>
+    <a href="#">⚙️ Configurações</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-row">
+      <div class="avatar">O</div>
+      <div class="info">
+        <div class="name">OLHARR</div>
+        <div class="role">ADMIN</div>
+      </div>
+    </div>
+    <button class="logout-btn">↩ Sair da conta</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="#">Orçamentos</a>
+    <span>/</span>
+    <span style="color: var(--fg); font-weight: 500;">Ensaio Convite – Arquitetura PUC</span>
+  </nav>
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <h1>Ensaio Convite – Arquitetura PUC</h1>
+      <div class="meta">
+        <span>Núcleo X</span>
+        <div class="dot"></div>
+        <span>FORMATURA</span>
+        <div class="dot"></div>
+        <span>Criado em 20/03/2026</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost btn-sm">
+        <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Duplicar
+      </button>
+      <button class="btn btn-ghost btn-sm">
+        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Exportar PDF
+      </button>
+      <select class="status-select">
+        <option>Rascunho</option>
+        <option>Enviado</option>
+        <option selected>Aprovado</option>
+        <option>Recusado</option>
+        <option>Expirado</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- CABEÇALHO RESUMO — 3 cards + NF          -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="stats-row">
+    <!-- CUSTOS (vermelho) -->
+    <div class="stat-card">
+      <div class="color-bar" style="background: var(--danger);"></div>
+      <span class="label">Custos</span>
+      <span class="value red">R$ 2.600,00</span>
+      <span class="sub">Total previsto dos itens</span>
+    </div>
+
+    <!-- VENDA (verde) -->
+    <div class="stat-card">
+      <div class="color-bar" style="background: var(--success);"></div>
+      <span class="label">Venda</span>
+      <span class="value green">R$ 3.250,00</span>
+      <span class="sub">Valor cobrado do cliente</span>
+    </div>
+
+    <!-- MARGEM (azul) -->
+    <div class="stat-card">
+      <div class="color-bar" style="background: var(--accent);"></div>
+      <span class="label">Margem</span>
+      <span class="value blue" id="margemPercent">25%</span>
+      <button class="adjust-btn" onclick="toggleMarginPanel()">
+        <svg class="icon-svg" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Ajustar margem
+      </button>
+    </div>
+
+    <!-- NF -->
+    <div class="nf-card">
+      <span class="label">Nota Fiscal</span>
+      <div class="nf-row">
+        <span style="font-size: 12px; color: var(--muted);">Custo NF</span>
+        <button class="toggle" id="toggleNf" onclick="this.classList.toggle('active')"></button>
+      </div>
+      <div class="nf-row">
+        <span class="nf-value" id="nfValue">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Painel de ajuste de margem (aparece ao clicar) -->
+  <div class="margin-panel" id="marginPanel">
+    <h3>Ajustar margem de lucro</h3>
+    <div class="margin-row">
+      <div>
+        <label style="font-size: 11px; color: var(--muted); font-weight: 500; display: block; margin-bottom: 6px;">Porcentagem</label>
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <input type="number" class="margin-input" value="25" id="margemInput" oninput="calcMargem()">
+          <span style="font-size: 14px; font-weight: 600; color: var(--subtle);">%</span>
+        </div>
+      </div>
+      <div style="flex: 1; text-align: right;">
+        <label style="font-size: 11px; color: var(--muted); font-weight: 500; display: block; margin-bottom: 6px;">Valor de venda</label>
+        <span style="font-size: 18px; font-weight: 700; color: var(--success);" id="margemResult">R$ 3.250,00</span>
+      </div>
+    </div>
+    <div class="margin-result-box">
+      <span style="font-size: 12px; color: var(--muted);">Lucro estimado</span>
+      <span style="font-size: 14px; font-weight: 700; color: var(--success);" id="lucroResult">R$ 650,00</span>
+    </div>
+    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+      <button class="btn btn-ghost btn-sm" onclick="toggleMarginPanel()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="toggleMarginPanel()">Salvar</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- CUSTOS PREVISTOS — tabs + produtos       -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Custos Previstos</h2>
+    </div>
+
+    <!-- Tabs: Foto, Vídeo, Mobile, Outros -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab(this)">Foto</button>
+      <button class="tab" onclick="switchTab(this)">Vídeo</button>
+      <button class="tab" onclick="switchTab(this)">Mobile</button>
+      <button class="tab" onclick="switchTab(this)">Outros</button>
+    </div>
+
+    <!-- Produtos cadastráveis -->
+    <div class="products-grid">
+      <div class="product-card" onclick="addProduct(this)">
+        <div class="product-info">
+          <span class="product-name">Fotógrafo Senior</span>
+          <span class="product-price">R$ 900,00</span>
+        </div>
+        <div class="add-icon">+</div>
+      </div>
+      <div class="product-card" onclick="addProduct(this)">
+        <div class="product-info">
+          <span class="product-name">Fotógrafo Junior</span>
+          <span class="product-price">R$ 400,00</span>
+        </div>
+        <div class="add-icon">+</div>
+      </div>
+      <div class="product-card" onclick="addProduct(this)">
+        <div class="product-info">
+          <span class="product-name">Assistente de Foto</span>
+          <span class="product-price">R$ 250,00</span>
+        </div>
+        <div class="add-icon">+</div>
+      </div>
+      <div class="product-card" onclick="addProduct(this)">
+        <div class="product-info">
+          <span class="product-name">Equipamento Flash</span>
+          <span class="product-price">R$ 150,00</span>
+        </div>
+        <div class="add-icon">+</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- LISTA DE ITENS ADICIONADOS AO ORÇAMENTO -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Lista de itens adicionados ao orçamento <span class="count">4</span></h2>
+      <button class="btn btn-primary btn-sm">
+        <svg class="icon-svg" viewBox="0 0 24 24" style="width:13px;height:13px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Adicionar manual
+      </button>
+    </div>
+
+    <div class="table-header">
+      <span>Item</span>
+      <span style="text-align: center;">Quantidade</span>
+      <span>Custo Previsto</span>
+      <span></span>
+    </div>
+
+    <div>
+      <div class="table-row">
+        <span class="desc">Julia Dias</span>
+        <span class="qty">1</span>
+        <span class="cost">R$ 900,00</span>
+        <button class="delete-btn"><svg class="icon-svg" viewBox="0 0 24 24" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+      <div class="table-row">
+        <span class="desc">Léo Kesley</span>
+        <span class="qty">1</span>
+        <span class="cost">R$ 900,00</span>
+        <button class="delete-btn"><svg class="icon-svg" viewBox="0 0 24 24" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+      <div class="table-row">
+        <span class="desc">Rafael Macedo</span>
+        <span class="qty">1</span>
+        <span class="cost">R$ 400,00</span>
+        <button class="delete-btn"><svg class="icon-svg" viewBox="0 0 24 24" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+      <div class="table-row">
+        <span class="desc">Toshiba</span>
+        <span class="qty">1</span>
+        <span class="cost">R$ 400,00</span>
+        <button class="delete-btn"><svg class="icon-svg" viewBox="0 0 24 24" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
+    </div>
+
+    <div class="table-footer">
+      <span class="total-label">Total</span>
+      <span class="total-value">R$ 2.600,00</span>
+    </div>
+  </div>
+
+</main>
+
+<script>
+function toggleMarginPanel() {
+  document.getElementById('marginPanel').classList.toggle('open');
+}
+
+function calcMargem() {
+  const total = 2600;
+  const pct = parseFloat(document.getElementById('margemInput').value) || 0;
+  const comMargem = total * (1 + pct / 100);
+  const lucro = comMargem - total;
+  const fmt = (v) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  document.getElementById('margemResult').textContent = fmt(comMargem);
+  document.getElementById('lucroResult').textContent = fmt(lucro);
+  document.getElementById('margemPercent').textContent = pct + '%';
+}
+
+function switchTab(el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function addProduct(card) {
+  card.style.borderColor = 'var(--primary)';
+  card.querySelector('.add-icon').textContent = '✓';
+  card.querySelector('.add-icon').style.background = 'rgba(34,197,94,0.12)';
+  card.querySelector('.add-icon').style.color = 'var(--success)';
+  setTimeout(() => {
+    card.style.borderColor = 'var(--border)';
+    card.querySelector('.add-icon').textContent = '+';
+    card.querySelector('.add-icon').style.background = 'rgba(139,92,246,0.08)';
+    card.querySelector('.add-icon').style.color = 'var(--primary)';
+  }, 1500);
+}
+</script>
+
+</body>
+</html>

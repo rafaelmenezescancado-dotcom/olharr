@@ -129,7 +129,7 @@ export function AgendaList({ eventos, projetos }: AgendaListProps) {
               <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
                 <div className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
                   {evs.map(ev => {
-                    const color = TIPO_COLORS[ev.tipo] ?? '#8B82A0'
+                    const color = TIPO_COLORS[ev.tipo] ?? '#9B96B0'
                     return (
                       <div key={ev.id} className="flex items-start gap-4 px-5 py-4 group hover:bg-white/3">
                         {/* Color bar */}

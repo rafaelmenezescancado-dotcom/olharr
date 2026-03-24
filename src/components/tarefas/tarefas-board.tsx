@@ -18,7 +18,7 @@ type Tarefa = {
 }
 
 const STATUS_CONFIG: Record<TaskStatus, { label: string; color: string; icon: React.ReactNode }> = {
-  PENDENTE: { label: 'Pendente', color: '#8B82A0', icon: <Clock size={14} /> },
+  PENDENTE: { label: 'Pendente', color: '#9B96B0', icon: <Clock size={14} /> },
   EM_ANDAMENTO: { label: 'Em andamento', color: '#1E7FCD', icon: <AlertCircle size={14} /> },
   CONCLUIDA: { label: 'Concluída', color: '#22C55E', icon: <Check size={14} /> },
   CANCELADA: { label: 'Cancelada', color: '#EF4444', icon: <Trash2 size={14} /> },
