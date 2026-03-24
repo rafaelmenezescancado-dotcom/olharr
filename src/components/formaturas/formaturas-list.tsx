@@ -67,7 +67,6 @@ type Turma = {
 
 interface FormaturasListProps {
   turmas: Turma[]
-  clientes: Array<{ id: string; name: string; company: string | null }>
 }
 
 const STATUS_LABELS: Record<TurmaStatus, string> = {
@@ -103,7 +102,7 @@ function formatShortDate(date: Date | string) {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-export function FormaturasList({ turmas, clientes }: FormaturasListProps) {
+export function FormaturasList({ turmas }: FormaturasListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTurma, setSelectedTurma] = useState<Turma | null>(null)
   const [modalTab, setModalTab] = useState('resumo')
@@ -626,29 +625,25 @@ export function FormaturasList({ turmas, clientes }: FormaturasListProps) {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1.5 text-slate-700">Cliente *</label>
-                <select name="clienteId" className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-slate-50 border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" required>
-                  <option value="">Selecionar...</option>
-                  {clientes.map(c => <option key={c.id} value={c.id}>{c.company || c.name}</option>)}
+                <label className="block text-sm font-medium mb-1.5 text-slate-700">Curso *</label>
+                <input name="curso" className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-slate-50 border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" placeholder="Ex: Medicina" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5 text-slate-700">Faculdade *</label>
+                <input name="faculdade" className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-slate-50 border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" placeholder="Ex: UFMG" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5 text-slate-700">Previsão de formatura *</label>
+                <select name="semestre" className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-slate-50 border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" required>
+                  <option value="">Selecionar semestre...</option>
+                  {Array.from({ length: 6 }, (_, i) => {
+                    const year = new Date().getFullYear() + Math.floor(i / 2)
+                    const half = (i % 2) + 1
+                    return `${year}.${half}`
+                  }).map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5 text-slate-700">Nome da turma *</label>
-                <input name="nome" className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-slate-50 border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" placeholder="Ex: Medicina UFBA 2025.1" required />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5 text-slate-700">Data do evento</label>
-                  <input type="date" name="dataEvento" className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-slate-50 border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1.5 text-slate-700">Valor total (R$)</label>
-                  <input type="number" step="0.01" name="valorTotal" className="w-full px-3 py-2 rounded-xl border text-sm outline-none bg-slate-50 border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5 text-slate-700">Observações</label>
-                <textarea name="observacoes" rows={2} className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none bg-slate-50 border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
               </div>
               {error && <p className="text-sm text-rose-600">{error}</p>}
               <div className="flex gap-3 pt-2">

@@ -7,36 +7,41 @@ import { z } from 'zod'
 import type { ParcelaStatus, TurmaStatus } from '@/generated/prisma/client'
 
 const turmaSchema = z.object({
-  clienteId: z.string().min(1, 'Cliente é obrigatório'),
-  nome: z.string().min(2, 'Nome é obrigatório'),
-  status: z.enum(['ATIVA', 'CONCLUIDA', 'CANCELADA']).default('ATIVA'),
-  dataEvento: z.string().optional().nullable(),
-  valorTotal: z.coerce.number().optional().nullable(),
-  observacoes: z.string().optional().nullable(),
+  curso: z.string().min(2, 'Curso é obrigatório'),
+  faculdade: z.string().min(2, 'Faculdade é obrigatória'),
+  semestre: z.string().min(1, 'Previsão de formatura é obrigatória'),
 })
 
 export async function criarTurma(formData: FormData) {
   await requireRole(['ADMIN', 'PRODUTOR'])
   const raw = {
-    clienteId: formData.get('clienteId'),
-    nome: formData.get('nome'),
-    status: formData.get('status') || 'ATIVA',
-    dataEvento: formData.get('dataEvento') || null,
-    valorTotal: formData.get('valorTotal') || null,
-    observacoes: formData.get('observacoes') || null,
+    curso: formData.get('curso'),
+    faculdade: formData.get('faculdade'),
+    semestre: formData.get('semestre'),
   }
   const parsed = turmaSchema.safeParse(raw)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Dados inválidos' }
   try {
     const d = parsed.data
+    const nome = `${d.curso} ${d.faculdade} ${d.semestre}`
+
+    // Compute dataEvento from semestre (e.g. "2026.1" → July 2026, "2026.2" → Dec 2026)
+    const [yearStr, halfStr] = d.semestre.split('.')
+    const year = parseInt(yearStr)
+    const month = halfStr === '1' ? 6 : 11 // July or December
+    const dataEvento = new Date(year, month, 1)
+
+    // Find or skip clienteId — use first client as placeholder
+    const firstClient = await prisma.client.findFirst({ select: { id: true } })
+    if (!firstClient) return { error: 'Cadastre um cliente antes de criar uma turma' }
+
     await prisma.turmaFormatura.create({
       data: {
-        clienteId: d.clienteId,
-        nome: d.nome,
-        status: d.status as TurmaStatus,
-        dataEvento: d.dataEvento ? new Date(d.dataEvento) : null,
-        valorTotal: d.valorTotal ?? null,
-        observacoes: d.observacoes ?? null,
+        clienteId: firstClient.id,
+        nome,
+        status: 'ATIVA',
+        dataEvento,
+        observacoes: `Curso: ${d.curso} | Faculdade: ${d.faculdade} | Previsão: ${d.semestre}`,
       },
     })
     revalidatePath('/formaturas')
