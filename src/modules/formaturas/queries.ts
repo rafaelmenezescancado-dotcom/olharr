@@ -4,7 +4,15 @@ export async function getTurmas() {
   return prisma.turmaFormatura.findMany({
     include: {
       cliente: { select: { id: true, name: true, company: true } },
-      formandos: { select: { id: true } },
+      formandos: {
+        include: {
+          parcelas: { orderBy: { vencimento: 'asc' } },
+        },
+      },
+      eventos: {
+        include: { custos: true },
+        orderBy: { data: 'asc' },
+      },
     },
     orderBy: { createdAt: 'desc' },
   })
