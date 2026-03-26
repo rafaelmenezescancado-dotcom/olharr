@@ -8,34 +8,67 @@ import {
   FileText,
   Clapperboard,
   Users,
-  CheckSquare,
-  Wallet,
   DollarSign,
+  BarChart3,
+  Wallet,
+  Receipt,
   CreditCard,
-  Star,
   Truck,
+  Star,
+  Package,
   Calendar,
   Instagram,
   GraduationCap,
   Settings,
   LogOut,
   ChevronRight,
+  ChevronDown,
 } from 'lucide-react'
 import { logout } from '@/lib/auth/logout'
 import { getInitials } from '@/lib/utils'
 import type { AuthUser } from '@/lib/auth/get-user'
 
-const navItems = [
+type NavItem = {
+  href: string
+  label: string
+  icon: typeof LayoutDashboard
+}
+
+type NavGroup = {
+  label: string
+  icon: typeof LayoutDashboard
+  children: NavItem[]
+}
+
+type NavEntry = NavItem | NavGroup
+
+function isGroup(entry: NavEntry): entry is NavGroup {
+  return 'children' in entry
+}
+
+const navEntries: NavEntry[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/orcamentos', label: 'Orçamentos', icon: FileText },
   { href: '/projetos', label: 'Projetos', icon: Clapperboard },
   { href: '/crm', label: 'CRM', icon: Users },
-  { href: '/tarefas', label: 'Tarefas', icon: CheckSquare },
-  { href: '/fluxo-caixa', label: 'Fluxo de Caixa', icon: Wallet },
-  { href: '/financeiro', label: 'Financeiro', icon: DollarSign },
-  { href: '/financeiro/pagamentos-freela', label: 'Pag. Freelancers', icon: CreditCard },
-  { href: '/talentos', label: 'Banco de Talentos', icon: Star },
-  { href: '/fornecedores', label: 'Fornecedores', icon: Truck },
+  {
+    label: 'Financeiro',
+    icon: DollarSign,
+    children: [
+      { href: '/financeiro', label: 'Dashboard Financeiro', icon: BarChart3 },
+      { href: '/fluxo-caixa', label: 'Fluxo de Caixa', icon: Wallet },
+      { href: '/financeiro/custos', label: 'Descrição de Custos', icon: Receipt },
+      { href: '/financeiro/pagamentos-freela', label: 'Provisionamento de Pagamento', icon: CreditCard },
+    ],
+  },
+  {
+    label: 'Fornecedores',
+    icon: Truck,
+    children: [
+      { href: '/talentos', label: 'Banco de Talentos', icon: Star },
+      { href: '/fornecedores/insumos', label: 'Insumos', icon: Package },
+    ],
+  },
   { href: '/agenda', label: 'Agenda', icon: Calendar },
   { href: '/calendario', label: 'Calendário Social', icon: Instagram },
   { href: '/formaturas', label: 'Formaturas', icon: GraduationCap },
@@ -56,6 +89,31 @@ interface SidebarProps {
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
   const [expanded, setExpanded] = useState(false)
+  const [openGroups, setOpenGroups] = useState<string[]>([])
+
+  function toggleGroup(label: string) {
+    setOpenGroups((prev) =>
+      prev.includes(label) ? prev.filter((g) => g !== label) : [...prev, label]
+    )
+  }
+
+  function isGroupActive(group: NavGroup) {
+    return group.children.some(
+      (child) => pathname === child.href || pathname.startsWith(child.href + '/')
+    )
+  }
+
+  function isItemActive(href: string) {
+    return pathname === href || pathname.startsWith(href + '/')
+  }
+
+  // Auto-open groups that contain the active route
+  const effectiveOpenGroups = [...openGroups]
+  for (const entry of navEntries) {
+    if (isGroup(entry) && isGroupActive(entry) && !effectiveOpenGroups.includes(entry.label)) {
+      effectiveOpenGroups.push(entry.label)
+    }
+  }
 
   return (
     <aside
@@ -97,40 +155,131 @@ export function Sidebar({ user }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 flex flex-col gap-0.5" style={{ paddingLeft: 10, paddingRight: 10 }}>
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap"
-              style={{
-                background: isActive ? '#8b5cf6' : 'transparent',
-                color: isActive ? '#FFFFFF' : '#676767',
-                transition: 'background 150ms',
-              }}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span
+        {navEntries.map((entry) => {
+          if (!isGroup(entry)) {
+            const Icon = entry.icon
+            const active = isItemActive(entry.href)
+            return (
+              <Link
+                key={entry.href}
+                href={entry.href}
+                className="relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap"
                 style={{
-                  flex: 1,
-                  opacity: expanded ? 1 : 0,
-                  transition: 'opacity 200ms',
+                  background: active ? '#8b5cf6' : 'transparent',
+                  color: active ? '#FFFFFF' : '#676767',
+                  transition: 'background 150ms',
                 }}
               >
-                {item.label}
-              </span>
-              {isActive && (
-                <ChevronRight
-                  className="size-3.5 shrink-0"
+                <Icon className="size-4 shrink-0" />
+                <span
                   style={{
-                    opacity: expanded ? 0.8 : 0,
+                    flex: 1,
+                    opacity: expanded ? 1 : 0,
                     transition: 'opacity 200ms',
                   }}
-                />
-              )}
-            </Link>
+                >
+                  {entry.label}
+                </span>
+                {active && (
+                  <ChevronRight
+                    className="size-3.5 shrink-0"
+                    style={{
+                      opacity: expanded ? 0.8 : 0,
+                      transition: 'opacity 200ms',
+                    }}
+                  />
+                )}
+              </Link>
+            )
+          }
+
+          // Group
+          const Icon = entry.icon
+          const groupActive = isGroupActive(entry)
+          const groupOpen = effectiveOpenGroups.includes(entry.label) && expanded
+
+          return (
+            <div key={entry.label}>
+              {/* Group header */}
+              <button
+                type="button"
+                onClick={() => expanded && toggleGroup(entry.label)}
+                className="relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap w-full"
+                style={{
+                  background: groupActive && !expanded ? '#8b5cf6' : 'transparent',
+                  color: groupActive ? (expanded ? '#8b5cf6' : '#FFFFFF') : '#676767',
+                  transition: 'background 150ms, color 150ms',
+                }}
+              >
+                <Icon className="size-4 shrink-0" />
+                <span
+                  style={{
+                    flex: 1,
+                    opacity: expanded ? 1 : 0,
+                    transition: 'opacity 200ms',
+                    textAlign: 'left',
+                  }}
+                >
+                  {entry.label}
+                </span>
+                {expanded && (
+                  <ChevronDown
+                    className="size-3.5 shrink-0"
+                    style={{
+                      opacity: expanded ? 0.6 : 0,
+                      transition: 'opacity 200ms, transform 200ms',
+                      transform: groupOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                    }}
+                  />
+                )}
+              </button>
+
+              {/* Group children */}
+              <div
+                style={{
+                  maxHeight: groupOpen ? `${entry.children.length * 40}px` : '0px',
+                  overflow: 'hidden',
+                  transition: 'max-height 200ms ease-in-out',
+                }}
+              >
+                {entry.children.map((child) => {
+                  const ChildIcon = child.icon
+                  const childActive = isItemActive(child.href)
+                  return (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      className="relative flex items-center gap-2.5 rounded-xl py-2 text-sm font-medium whitespace-nowrap"
+                      style={{
+                        paddingLeft: 36,
+                        paddingRight: 12,
+                        background: childActive ? '#8b5cf6' : 'transparent',
+                        color: childActive ? '#FFFFFF' : '#676767',
+                        transition: 'background 150ms',
+                      }}
+                    >
+                      <ChildIcon className="size-3.5 shrink-0" />
+                      <span
+                        className="truncate"
+                        style={{
+                          flex: 1,
+                          opacity: expanded ? 1 : 0,
+                          transition: 'opacity 200ms',
+                        }}
+                      >
+                        {child.label}
+                      </span>
+                      {childActive && (
+                        <ChevronRight
+                          className="size-3 shrink-0"
+                          style={{ opacity: 0.8 }}
+                        />
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
           )
         })}
       </nav>
