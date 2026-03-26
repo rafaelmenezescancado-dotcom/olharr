@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
 import { z } from 'zod'
 
 const fornecedorSchema = z.object({
@@ -46,8 +47,8 @@ export async function criarFornecedor(formData: FormData) {
     })
     revalidatePath('/fornecedores')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar fornecedor' }
+  } catch (e) {
+    return handleActionError('criarFornecedor', e, 'Erro ao criar fornecedor')
   }
 }
 
@@ -57,7 +58,7 @@ export async function deletarFornecedor(id: string) {
     await prisma.fornecedor.delete({ where: { id } })
     revalidatePath('/fornecedores')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao deletar fornecedor' }
+  } catch (e) {
+    return handleActionError('deletarFornecedor', e, 'Erro ao deletar fornecedor', { entityId: id })
   }
 }

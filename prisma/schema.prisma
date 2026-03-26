@@ -112,6 +112,8 @@ model User {
   notificacoes   Notification[]
   postsAprovados Post[]        @relation("PostAprovador")
 
+  @@index([role])
+  @@index([active])
   @@map("users")
 }
 
@@ -141,6 +143,8 @@ model Client {
   followUps           CrmFollowUp[]
   interacoes          CrmInteracao[]
 
+  @@index([stage])
+  @@index([createdAt])
   @@map("clients")
 }
 
@@ -182,6 +186,8 @@ model CrmFollowUp {
 
   cliente Client @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 
+  @@index([clienteId])
+  @@index([dataEnvio])
   @@map("crm_followups")
 }
 
@@ -194,6 +200,8 @@ model CrmInteracao {
 
   cliente Client @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 
+  @@index([clienteId])
+  @@index([createdAt])
   @@map("crm_interacoes")
 }
 
@@ -221,6 +229,11 @@ model Project {
   pagamentosFreela PagamentoFreelancer[]
   agendaEventos AgendaEvent[]
 
+  @@index([clienteId])
+  @@index([responsavelId])
+  @@index([stage])
+  @@index([createdAt])
+  @@index([dataEvento])
   @@map("projects")
 }
 
@@ -235,6 +248,7 @@ model ProjectCost {
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@index([projectId])
   @@map("project_costs")
 }
 
@@ -280,6 +294,11 @@ model Tarefa {
   projeto     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   responsavel User?    @relation(fields: [responsavelId], references: [id], onDelete: SetNull)
 
+  @@index([projectId])
+  @@index([responsavelId])
+  @@index([status])
+  @@index([prioridade])
+  @@index([dataVencimento])
   @@map("tarefas")
 }
 
@@ -311,6 +330,10 @@ model Transaction {
 
   conta FinancialAccount @relation(fields: [contaId], references: [id])
 
+  @@index([contaId])
+  @@index([tipo])
+  @@index([data])
+  @@index([categoria])
   @@map("transactions")
 }
 
@@ -337,6 +360,8 @@ model Freelancer {
 
   pagamentos PagamentoFreelancer[]
 
+  @@index([active])
+  @@index([name])
   @@map("freelancers")
 }
 
@@ -357,6 +382,9 @@ model PagamentoFreelancer {
   freelancer Freelancer @relation(fields: [freelancerId], references: [id])
   projeto    Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
+  @@index([freelancerId])
+  @@index([projectId])
+  @@index([fase])
   @@map("pagamentos_freelancers")
 }
 
@@ -395,6 +423,9 @@ model Orcamento {
   cliente Client         @relation(fields: [clienteId], references: [id])
   itens   OrcamentoItem[]
 
+  @@index([clienteId])
+  @@index([status])
+  @@index([createdAt])
   @@map("orcamentos")
 }
 
@@ -408,6 +439,7 @@ model OrcamentoItem {
 
   orcamento Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
 
+  @@index([orcamentoId])
   @@map("orcamento_itens")
 }
 
@@ -427,6 +459,8 @@ model AgendaEvent {
 
   projeto Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
+  @@index([projectId])
+  @@index([inicio])
   @@map("agenda_events")
 }
 
@@ -445,6 +479,8 @@ model Post {
 
   aprovador User? @relation("PostAprovador", fields: [aprovadorId], references: [id], onDelete: SetNull)
 
+  @@index([status])
+  @@index([dataPublicacao])
   @@map("posts")
 }
 
@@ -462,6 +498,9 @@ model Notification {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([lida])
+  @@index([createdAt])
   @@map("notifications")
 }
 
@@ -482,6 +521,9 @@ model TurmaFormatura {
   formandos Formando[]
   eventos   EventoTurma[]
 
+  @@index([clienteId])
+  @@index([status])
+  @@index([dataEvento])
   @@map("turmas_formaturas")
 }
 
@@ -496,6 +538,7 @@ model Formando {
   turma    TurmaFormatura @relation(fields: [turmaId], references: [id], onDelete: Cascade)
   parcelas ParcelaFormando[]
 
+  @@index([turmaId])
   @@map("formandos")
 }
 
@@ -510,6 +553,9 @@ model ParcelaFormando {
 
   formando Formando @relation(fields: [formandoId], references: [id], onDelete: Cascade)
 
+  @@index([formandoId])
+  @@index([status])
+  @@index([vencimento])
   @@map("parcelas_formandos")
 }
 
@@ -524,6 +570,8 @@ model EventoTurma {
   turma  TurmaFormatura @relation(fields: [turmaId], references: [id], onDelete: Cascade)
   custos CustoEventoTurma[]
 
+  @@index([turmaId])
+  @@index([data])
   @@map("eventos_turma")
 }
 
@@ -536,5 +584,6 @@ model CustoEventoTurma {
 
   evento EventoTurma @relation(fields: [eventoId], references: [id], onDelete: Cascade)
 
+  @@index([eventoId])
   @@map("custos_eventos_turma")
 }

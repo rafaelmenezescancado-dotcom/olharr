@@ -137,7 +137,7 @@ export function FormaturasList({ turmas }: FormaturasListProps) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const result = await criarTurma(new FormData(e.currentTarget))
+    const result = await criarTurma(new FormData(e.currentTarget)) as { error?: string; success?: boolean }
     if (result?.error) { setError(result.error); setLoading(false) }
     else { setFormOpen(false); setLoading(false) }
   }

@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
+import { checkOwnership } from '@/lib/auth/check-ownership'
 import { projetoSchema, updateStageSchema } from './schemas'
 
 export async function criarProjeto(formData: FormData) {
@@ -42,13 +44,18 @@ export async function criarProjeto(formData: FormData) {
     })
     revalidatePath('/projetos')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar projeto' }
+  } catch (e) {
+    return handleActionError('criarProjeto', e, 'Erro ao criar projeto')
   }
 }
 
 export async function atualizarProjeto(id: string, formData: FormData) {
-  await requireRole(['ADMIN', 'PRODUTOR'])
+  const user = await requireRole(['ADMIN', 'PRODUTOR'])
+
+  // Verifica se o usuário pode editar este projeto
+  const projeto = await prisma.project.findUnique({ where: { id }, select: { responsavelId: true } })
+  const denied = checkOwnership(user, projeto?.responsavelId, 'Sem permissão para editar este projeto')
+  if (denied) return denied
 
   const raw = {
     title: formData.get('title'),
@@ -85,8 +92,8 @@ export async function atualizarProjeto(id: string, formData: FormData) {
     })
     revalidatePath('/projetos')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao atualizar projeto' }
+  } catch (e) {
+    return handleActionError('atualizarProjeto', e, 'Erro ao atualizar projeto', { entityId: id })
   }
 }
 
@@ -103,19 +110,23 @@ export async function moverProjetoStage(id: string, stage: string) {
     })
     revalidatePath('/projetos')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao mover projeto' }
+  } catch (e) {
+    return handleActionError('moverProjetoStage', e, 'Erro ao mover projeto', { entityId: id })
   }
 }
 
 export async function deletarProjeto(id: string) {
-  await requireRole(['ADMIN'])
+  const user = await requireRole(['ADMIN'])
+
+  // Double-check: só ADMIN pode deletar, mas log quem fez
+  const projeto = await prisma.project.findUnique({ where: { id }, select: { title: true } })
+  if (!projeto) return { error: 'Projeto não encontrado' }
 
   try {
     await prisma.project.delete({ where: { id } })
     revalidatePath('/projetos')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao deletar projeto' }
+  } catch (e) {
+    return handleActionError('deletarProjeto', e, 'Erro ao deletar projeto', { entityId: id })
   }
 }

@@ -7,11 +7,11 @@ export const dynamic = 'force-dynamic'
 export default async function TalentosPage() {
   await requireRole(['ADMIN', 'PRODUTOR'])
 
-  const freelancers = await getFreelancers()
+  const result = await getFreelancers()
 
   return (
     <div className="p-6 min-h-full" style={{ background: 'var(--color-background)' }}>
-      <TalentosGrid freelancers={freelancers} />
+      <TalentosGrid freelancers={result.data} />
     </div>
   )
 }

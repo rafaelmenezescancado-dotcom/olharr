@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 export default async function PagamentosFreelaPage() {
   await requireRole(['ADMIN', 'PRODUTOR', 'FINANCEIRO'])
 
-  const [byFase, freelancers, projetos] = await Promise.all([
+  const [byFase, freelancersResult, projetos] = await Promise.all([
     getPagamentosKanban(),
     getFreelancers(),
     getProjetosList(),
@@ -17,7 +17,7 @@ export default async function PagamentosFreelaPage() {
 
   return (
     <div className="p-6 min-h-full" style={{ background: 'var(--color-background)' }}>
-      <PagamentosKanban byFase={byFase} freelancers={freelancers} projetos={projetos} />
+      <PagamentosKanban byFase={byFase} freelancers={freelancersResult.data} projetos={projetos} />
     </div>
   )
 }

@@ -75,7 +75,7 @@ export function OrcamentoDetail({ orcamento }: OrcamentoDetailProps) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const result = await adicionarItem(orcamento.id, new FormData(e.currentTarget))
+    const result = await adicionarItem(orcamento.id, new FormData(e.currentTarget)) as { error?: string; success?: boolean }
     if (result?.error) { setError(result.error); setLoading(false) }
     else { setAddItemOpen(false); setLoading(false); (e.target as HTMLFormElement).reset() }
   }

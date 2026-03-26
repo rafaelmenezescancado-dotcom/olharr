@@ -19,7 +19,7 @@ export function FornecedoresList({ fornecedores }: FornecedoresListProps) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const result = await criarFornecedor(new FormData(e.currentTarget))
+    const result = await criarFornecedor(new FormData(e.currentTarget)) as { error?: string; success?: boolean }
     if (result?.error) { setError(result.error); setLoading(false) }
     else { setFormOpen(false); setLoading(false) }
   }

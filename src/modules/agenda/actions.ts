@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
 
 export async function criarEvento(formData: FormData) {
   await requireAuth()
@@ -24,8 +25,8 @@ export async function criarEvento(formData: FormData) {
     })
     revalidatePath('/agenda')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar evento' }
+  } catch (e) {
+    return handleActionError('criarEvento', e, 'Erro ao criar evento')
   }
 }
 
@@ -35,7 +36,7 @@ export async function deletarEvento(id: string) {
     await prisma.agendaEvent.delete({ where: { id } })
     revalidatePath('/agenda')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao deletar evento' }
+  } catch (e) {
+    return handleActionError('deletarEvento', e, 'Erro ao deletar evento', { entityId: id })
   }
 }

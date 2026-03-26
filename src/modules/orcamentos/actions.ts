@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
 import { z } from 'zod'
 import type { OrcamentoStatus } from '@/generated/prisma/client'
 
@@ -45,8 +46,8 @@ export async function criarOrcamento(formData: FormData) {
     })
     revalidatePath('/orcamentos')
     return { success: true, id: orcamento.id }
-  } catch {
-    return { error: 'Erro ao criar orçamento' }
+  } catch (e) {
+    return handleActionError('criarOrcamento', e, 'Erro ao criar orçamento', { entityId: raw.clienteId as string })
   }
 }
 
@@ -57,8 +58,8 @@ export async function atualizarStatusOrcamento(id: string, status: OrcamentoStat
     revalidatePath('/orcamentos')
     revalidatePath(`/orcamentos/${id}`)
     return { success: true }
-  } catch {
-    return { error: 'Erro ao atualizar status' }
+  } catch (e) {
+    return handleActionError('atualizarStatusOrcamento', e, 'Erro ao atualizar status', { entityId: id })
   }
 }
 
@@ -84,8 +85,8 @@ export async function adicionarItem(orcamentoId: string, formData: FormData) {
     })
     revalidatePath(`/orcamentos/${orcamentoId}`)
     return { success: true }
-  } catch {
-    return { error: 'Erro ao adicionar item' }
+  } catch (e) {
+    return handleActionError('adicionarItem', e, 'Erro ao adicionar item', { entityId: orcamentoId })
   }
 }
 
@@ -100,8 +101,8 @@ export async function removerItem(itemId: string, orcamentoId: string) {
     })
     revalidatePath(`/orcamentos/${orcamentoId}`)
     return { success: true }
-  } catch {
-    return { error: 'Erro ao remover item' }
+  } catch (e) {
+    return handleActionError('removerItem', e, 'Erro ao remover item', { entityId: itemId })
   }
 }
 
@@ -111,7 +112,7 @@ export async function deletarOrcamento(id: string) {
     await prisma.orcamento.delete({ where: { id } })
     revalidatePath('/orcamentos')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao deletar orçamento' }
+  } catch (e) {
+    return handleActionError('deletarOrcamento', e, 'Erro ao deletar orçamento', { entityId: id })
   }
 }

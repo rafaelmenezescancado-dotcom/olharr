@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
 import type { PostStatus } from '@/generated/prisma/client'
 
 export async function criarPost(formData: FormData) {
@@ -24,8 +25,8 @@ export async function criarPost(formData: FormData) {
     })
     revalidatePath('/calendario')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar post' }
+  } catch (e) {
+    return handleActionError('criarPost', e, 'Erro ao criar post')
   }
 }
 
@@ -35,8 +36,8 @@ export async function atualizarStatusPost(id: string, status: PostStatus) {
     await prisma.post.update({ where: { id }, data: { status } })
     revalidatePath('/calendario')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao atualizar status' }
+  } catch (e) {
+    return handleActionError('atualizarStatusPost', e, 'Erro ao atualizar status', { entityId: id })
   }
 }
 
@@ -46,7 +47,7 @@ export async function deletarPost(id: string) {
     await prisma.post.delete({ where: { id } })
     revalidatePath('/calendario')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao deletar post' }
+  } catch (e) {
+    return handleActionError('deletarPost', e, 'Erro ao deletar post', { entityId: id })
   }
 }

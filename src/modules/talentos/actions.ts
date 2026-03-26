@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
 import { z } from 'zod'
 
 const freelancerSchema = z.object({
@@ -66,8 +67,8 @@ export async function criarFreelancer(formData: FormData) {
     })
     revalidatePath('/talentos')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar freelancer' }
+  } catch (e) {
+    return handleActionError('criarFreelancer', e, 'Erro ao criar freelancer')
   }
 }
 
@@ -77,7 +78,7 @@ export async function deletarFreelancer(id: string) {
     await prisma.freelancer.update({ where: { id }, data: { active: false } })
     revalidatePath('/talentos')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao remover freelancer' }
+  } catch (e) {
+    return handleActionError('deletarFreelancer', e, 'Erro ao remover freelancer', { entityId: id })
   }
 }

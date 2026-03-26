@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
 import { z } from 'zod'
 import type { ParcelaStatus, TurmaStatus } from '@/generated/prisma/client'
 
@@ -46,8 +47,8 @@ export async function criarTurma(formData: FormData) {
     })
     revalidatePath('/formaturas')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar turma' }
+  } catch (e) {
+    return handleActionError('criarTurma', e, 'Erro ao criar turma')
   }
 }
 
@@ -58,8 +59,8 @@ export async function atualizarStatusTurma(id: string, status: TurmaStatus) {
     revalidatePath('/formaturas')
     revalidatePath(`/formaturas/${id}`)
     return { success: true }
-  } catch {
-    return { error: 'Erro ao atualizar status' }
+  } catch (e) {
+    return handleActionError('atualizarStatusTurma', e, 'Erro ao atualizar status', { entityId: id })
   }
 }
 
@@ -78,8 +79,8 @@ export async function criarFormando(turmaId: string, formData: FormData) {
     })
     revalidatePath(`/formaturas/${turmaId}`)
     return { success: true }
-  } catch {
-    return { error: 'Erro ao adicionar formando' }
+  } catch (e) {
+    return handleActionError('criarFormando', e, 'Erro ao adicionar formando', { entityId: turmaId })
   }
 }
 
@@ -89,8 +90,8 @@ export async function deletarFormando(id: string, turmaId: string) {
     await prisma.formando.delete({ where: { id } })
     revalidatePath(`/formaturas/${turmaId}`)
     return { success: true }
-  } catch {
-    return { error: 'Erro ao remover formando' }
+  } catch (e) {
+    return handleActionError('deletarFormando', e, 'Erro ao remover formando', { entityId: id })
   }
 }
 
@@ -112,8 +113,8 @@ export async function criarParcela(formandoId: string, turmaId: string, formData
     })
     revalidatePath(`/formaturas/${turmaId}`)
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar parcela' }
+  } catch (e) {
+    return handleActionError('criarParcela', e, 'Erro ao criar parcela', { entityId: formandoId })
   }
 }
 
@@ -129,7 +130,7 @@ export async function atualizarStatusParcela(id: string, turmaId: string, status
     })
     revalidatePath(`/formaturas/${turmaId}`)
     return { success: true }
-  } catch {
-    return { error: 'Erro ao atualizar parcela' }
+  } catch (e) {
+    return handleActionError('atualizarStatusParcela', e, 'Erro ao atualizar parcela', { entityId: id })
   }
 }

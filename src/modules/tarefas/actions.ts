@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
+import { checkOwnership } from '@/lib/auth/check-ownership'
 import { z } from 'zod'
 import type { TaskStatus } from '@/generated/prisma/client'
 
@@ -47,13 +49,19 @@ export async function criarTarefa(formData: FormData) {
     })
     revalidatePath('/tarefas')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar tarefa' }
+  } catch (e) {
+    return handleActionError('criarTarefa', e, 'Erro ao criar tarefa')
   }
 }
 
 export async function atualizarStatusTarefa(id: string, status: TaskStatus) {
-  await requireAuth()
+  const user = await requireAuth()
+
+  // Verifica ownership — só o responsável ou ADMIN pode alterar
+  const tarefa = await prisma.tarefa.findUnique({ where: { id }, select: { responsavelId: true } })
+  const denied = checkOwnership(user, tarefa?.responsavelId, 'Sem permissão para alterar esta tarefa')
+  if (denied) return denied
+
   try {
     await prisma.tarefa.update({
       where: { id },
@@ -64,18 +72,23 @@ export async function atualizarStatusTarefa(id: string, status: TaskStatus) {
     })
     revalidatePath('/tarefas')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao atualizar tarefa' }
+  } catch (e) {
+    return handleActionError('atualizarStatusTarefa', e, 'Erro ao atualizar tarefa', { entityId: id })
   }
 }
 
 export async function deletarTarefa(id: string) {
-  await requireAuth()
+  const user = await requireAuth()
+
+  const tarefa = await prisma.tarefa.findUnique({ where: { id }, select: { responsavelId: true } })
+  const denied = checkOwnership(user, tarefa?.responsavelId, 'Sem permissão para deletar esta tarefa')
+  if (denied) return denied
+
   try {
     await prisma.tarefa.delete({ where: { id } })
     revalidatePath('/tarefas')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao deletar tarefa' }
+  } catch (e) {
+    return handleActionError('deletarTarefa', e, 'Erro ao deletar tarefa', { entityId: id })
   }
 }

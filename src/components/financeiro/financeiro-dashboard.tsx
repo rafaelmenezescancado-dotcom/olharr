@@ -33,7 +33,7 @@ export function FinanceiroDashboard({
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const result = await criarTransacao(new FormData(e.currentTarget))
+    const result = await criarTransacao(new FormData(e.currentTarget)) as { error?: string; success?: boolean }
     if (result?.error) {
       setError(result.error)
       setLoading(false)

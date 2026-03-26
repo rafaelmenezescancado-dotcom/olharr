@@ -55,7 +55,7 @@ export function TarefasBoard({ byStatus, projetos, users }: TarefasBoardProps) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const result = await criarTarefa(new FormData(e.currentTarget))
+    const result = await criarTarefa(new FormData(e.currentTarget)) as { error?: string; success?: boolean }
     if (result?.error) {
       setError(result.error)
       setLoading(false)

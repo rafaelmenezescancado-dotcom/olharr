@@ -144,7 +144,7 @@ export function OrcamentosList({ orcamentos, clientes }: OrcamentosListProps) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const result = await criarOrcamento(new FormData(e.currentTarget))
+    const result = await criarOrcamento(new FormData(e.currentTarget)) as { error?: string; success?: boolean; id?: string }
     if (result?.error) { setError(result.error); setLoading(false) }
     else { setFormOpen(false); setLoading(false) }
   }

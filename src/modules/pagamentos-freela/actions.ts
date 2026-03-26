@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
 import { z } from 'zod'
 import type { FasePagamentoFreelancer } from '@/generated/prisma/client'
 
@@ -47,8 +48,8 @@ export async function criarPagamentoFreela(formData: FormData) {
     })
     revalidatePath('/financeiro/pagamentos-freela')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar pagamento' }
+  } catch (e) {
+    return handleActionError('criarPagamentoFreela', e, 'Erro ao criar pagamento')
   }
 }
 
@@ -64,7 +65,7 @@ export async function avancarFasePagamento(id: string, fase: FasePagamentoFreela
     })
     revalidatePath('/financeiro/pagamentos-freela')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao atualizar fase' }
+  } catch (e) {
+    return handleActionError('avancarFasePagamento', e, 'Erro ao atualizar fase', { entityId: id })
   }
 }

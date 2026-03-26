@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
 import { clienteSchema } from './schemas'
 import type { CrmStage } from '@/generated/prisma/client'
 
@@ -71,8 +72,8 @@ export async function criarCliente(formData: FormData) {
     })
     revalidatePath('/crm')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar cliente' }
+  } catch (e) {
+    return handleActionError('criarCliente', e, 'Erro ao criar cliente')
   }
 }
 
@@ -83,8 +84,8 @@ export async function atualizarClienteStage(id: string, stage: CrmStage) {
     await prisma.client.update({ where: { id }, data: { stage } })
     revalidatePath('/crm')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao mover cliente' }
+  } catch (e) {
+    return handleActionError('atualizarClienteStage', e, 'Erro ao mover cliente', { entityId: id })
   }
 }
 
@@ -155,8 +156,8 @@ export async function atualizarCliente(id: string, formData: FormData) {
     })
     revalidatePath('/crm')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao atualizar cliente' }
+  } catch (e) {
+    return handleActionError('atualizarCliente', e, 'Erro ao atualizar cliente', { entityId: id })
   }
 }
 
@@ -166,7 +167,7 @@ export async function deletarCliente(id: string) {
     await prisma.client.delete({ where: { id } })
     revalidatePath('/crm')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao deletar cliente' }
+  } catch (e) {
+    return handleActionError('deletarCliente', e, 'Erro ao deletar cliente', { entityId: id })
   }
 }

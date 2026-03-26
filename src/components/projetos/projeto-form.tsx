@@ -23,9 +23,9 @@ export function ProjetoForm({ clientes, users, projeto, onClose }: ProjetoFormPr
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    const result = projeto
+    const result = (projeto
       ? await atualizarProjeto(projeto.id, formData)
-      : await criarProjeto(formData)
+      : await criarProjeto(formData)) as { error?: string; success?: boolean }
 
     if (result?.error) {
       setError(result.error)

@@ -59,7 +59,7 @@ export function PagamentosKanban({ byFase, freelancers, projetos }: PagamentosKa
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const result = await criarPagamentoFreela(new FormData(e.currentTarget))
+    const result = await criarPagamentoFreela(new FormData(e.currentTarget)) as { error?: string; success?: boolean }
     if (result?.error) { setError(result.error); setLoading(false) }
     else { setFormOpen(false); setLoading(false) }
   }

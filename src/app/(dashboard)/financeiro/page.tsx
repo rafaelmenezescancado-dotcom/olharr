@@ -12,7 +12,7 @@ interface TransacaoComConta extends Transaction {
 export default async function FinanceiroPage() {
   await requireRole(['ADMIN', 'FINANCEIRO'])
 
-  const { transacoes, contas, entradas, saidas } = await getTransacoesComResumo()
+  const { data: transacoes, contas, entradas, saidas } = await getTransacoesComResumo()
 
   return (
     <div className="p-6 min-h-full" style={{ background: 'var(--color-background)' }}>

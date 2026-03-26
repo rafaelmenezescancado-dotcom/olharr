@@ -21,9 +21,9 @@ export function ClienteForm({ cliente, onClose }: ClienteFormProps) {
     setLoading(true)
     setError(null)
     const formData = new FormData(e.currentTarget)
-    const result = cliente
+    const result = (cliente
       ? await atualizarCliente(cliente.id, formData)
-      : await criarCliente(formData)
+      : await criarCliente(formData)) as { error?: string; success?: boolean }
     if (result?.error) {
       setError(result.error)
       setLoading(false)

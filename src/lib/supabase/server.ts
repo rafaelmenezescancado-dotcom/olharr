@@ -19,7 +19,13 @@ export async function createSupabaseServerClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
-          } catch {}
+          } catch (e) {
+            // setAll pode falhar em Server Components (read-only cookies).
+            // Isso é esperado e seguro — só loga em dev para debug.
+            if (process.env.NODE_ENV !== 'production') {
+              console.warn('[Supabase] Cookie setAll falhou (esperado em Server Components):', e instanceof Error ? e.message : e)
+            }
+          }
         },
       },
     }

@@ -27,7 +27,7 @@ export function TalentosGrid({ freelancers }: TalentosGridProps) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const result = await criarFreelancer(new FormData(e.currentTarget))
+    const result = await criarFreelancer(new FormData(e.currentTarget)) as { error?: string; success?: boolean }
     if (result?.error) {
       setError(result.error)
       setLoading(false)

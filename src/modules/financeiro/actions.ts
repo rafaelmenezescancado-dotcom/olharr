@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth/require-role'
+import { handleActionError } from '@/lib/logger'
 import { z } from 'zod'
 
 const transacaoSchema = z.object({
@@ -43,8 +44,8 @@ export async function criarTransacao(formData: FormData) {
     })
     revalidatePath('/financeiro')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar transação' }
+  } catch (e) {
+    return handleActionError('criarTransacao', e, 'Erro ao criar transação')
   }
 }
 
@@ -54,8 +55,8 @@ export async function deletarTransacao(id: string) {
     await prisma.transaction.delete({ where: { id } })
     revalidatePath('/financeiro')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao deletar transação' }
+  } catch (e) {
+    return handleActionError('deletarTransacao', e, 'Erro ao deletar transação', { entityId: id })
   }
 }
 
@@ -78,7 +79,7 @@ export async function criarConta(formData: FormData) {
     await prisma.financialAccount.create({ data: parsed.data })
     revalidatePath('/financeiro')
     return { success: true }
-  } catch {
-    return { error: 'Erro ao criar conta' }
+  } catch (e) {
+    return handleActionError('criarConta', e, 'Erro ao criar conta')
   }
 }
