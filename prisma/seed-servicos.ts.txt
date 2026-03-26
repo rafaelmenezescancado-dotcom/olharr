@@ -1,0 +1,209 @@
+/**
+ * Seed para ServicoBase + OpcaoServico
+ * Baseado nas planilhas AUX (AUXCASAMENTO, AUXEVENTO, AUXCORPORATIVO)
+ *
+ * Executar: npx tsx prisma/seed-servicos.ts
+ */
+
+import { PrismaClient } from '../src/generated/prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
+import { config } from 'dotenv'
+config({ path: '.env.local' })
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+})
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
+
+// ─── DADOS DOS SERVIÇOS ─────────────────────────────────────────────────────
+
+type ServicoSeed = {
+  nome: string
+  tipo: 'HORA' | 'OPCAO'
+  icone: string
+  cor: string
+  area: string
+  custoPorHora?: number
+  ordem: number
+  opcoes?: { nome: string; custo: number; ordem: number }[]
+}
+
+const servicos: ServicoSeed[] = [
+  // ── TIPO HORA (custo = horas × custoPorHora) ────────────────────────────
+  {
+    nome: 'Fotógrafo',
+    tipo: 'HORA',
+    icone: '📷',
+    cor: 'rgba(139,92,246,.08)',
+    area: 'FOTOGRAFIA',
+    custoPorHora: 150.0,
+    ordem: 1,
+  },
+  {
+    nome: 'Videomaker',
+    tipo: 'HORA',
+    icone: '🎬',
+    cor: 'rgba(217,70,239,.08)',
+    area: 'VIDEO',
+    custoPorHora: 150.0,
+    ordem: 2,
+  },
+  {
+    nome: 'Drone',
+    tipo: 'HORA',
+    icone: '🚁',
+    cor: 'rgba(30,127,205,.08)',
+    area: 'VIDEO',
+    custoPorHora: 200.0,
+    ordem: 3,
+  },
+  {
+    nome: 'Edição Real Time',
+    tipo: 'HORA',
+    icone: '⚡',
+    cor: 'rgba(245,158,11,.08)',
+    area: 'FOTOGRAFIA',
+    custoPorHora: 100.0,
+    ordem: 4,
+  },
+
+  // ── TIPO OPCAO (custo fixo por opção selecionada) ───────────────────────
+  {
+    nome: 'Aftermovie',
+    tipo: 'OPCAO',
+    icone: '🎞️',
+    cor: 'rgba(30,127,205,.08)',
+    area: 'VIDEO',
+    ordem: 5,
+    opcoes: [
+      { nome: '1 minuto', custo: 800.0, ordem: 1 },
+      { nome: '3 minutos', custo: 1500.0, ordem: 2 },
+      { nome: '10 minutos', custo: 3000.0, ordem: 3 },
+    ],
+  },
+  {
+    nome: 'Ensaio',
+    tipo: 'OPCAO',
+    icone: '💍',
+    cor: 'rgba(244,63,94,.08)',
+    area: 'FOTOGRAFIA',
+    ordem: 6,
+    opcoes: [
+      { nome: '1H - 20 fotos', custo: 500.0, ordem: 1 },
+      { nome: '2H - 40 fotos', custo: 900.0, ordem: 2 },
+      { nome: '3H - 60 fotos', custo: 1200.0, ordem: 3 },
+    ],
+  },
+  {
+    nome: 'Making Of',
+    tipo: 'OPCAO',
+    icone: '💄',
+    cor: 'rgba(217,70,239,.08)',
+    area: 'FOTOGRAFIA',
+    ordem: 7,
+    opcoes: [
+      { nome: 'Noiva', custo: 400.0, ordem: 1 },
+      { nome: 'Noivo', custo: 400.0, ordem: 2 },
+      { nome: 'Noivos', custo: 700.0, ordem: 3 },
+    ],
+  },
+  {
+    nome: 'Álbum',
+    tipo: 'OPCAO',
+    icone: '📖',
+    cor: 'rgba(34,197,94,.08)',
+    area: 'EXTRAS',
+    ordem: 8,
+    opcoes: [
+      { nome: 'Tipo 1 - 20 páginas', custo: 500.0, ordem: 1 },
+      { nome: 'Tipo 2 - 30 páginas', custo: 800.0, ordem: 2 },
+      { nome: 'Tipo 3 - 40 páginas', custo: 1100.0, ordem: 3 },
+      { nome: 'Tipo 4 - 60 páginas', custo: 1500.0, ordem: 4 },
+    ],
+  },
+  {
+    nome: 'Plataforma 360',
+    tipo: 'OPCAO',
+    icone: '🔄',
+    cor: 'rgba(139,92,246,.08)',
+    area: 'EXTRAS',
+    ordem: 9,
+    opcoes: [
+      { nome: '2 horas', custo: 600.0, ordem: 1 },
+      { nome: '4 horas', custo: 1000.0, ordem: 2 },
+      { nome: '6 horas', custo: 1400.0, ordem: 3 },
+      { nome: '8 horas', custo: 1800.0, ordem: 4 },
+    ],
+  },
+]
+
+// ─── MAIN ───────────────────────────────────────────────────────────────────
+
+async function main() {
+  console.log('🌱 Seeding ServicoBase + OpcaoServico...\n')
+
+  for (const s of servicos) {
+    const servico = await prisma.servicoBase.upsert({
+      where: { id: `seed-${s.nome.toLowerCase().replace(/\s+/g, '-')}` },
+      update: {
+        nome: s.nome,
+        tipo: s.tipo,
+        icone: s.icone,
+        cor: s.cor,
+        area: s.area,
+        custoPorHora: s.custoPorHora ?? null,
+        ordem: s.ordem,
+      },
+      create: {
+        id: `seed-${s.nome.toLowerCase().replace(/\s+/g, '-')}`,
+        nome: s.nome,
+        tipo: s.tipo,
+        icone: s.icone,
+        cor: s.cor,
+        area: s.area,
+        custoPorHora: s.custoPorHora ?? null,
+        ordem: s.ordem,
+      },
+    })
+
+    console.log(`  ✅ ${s.icone} ${s.nome} (${s.tipo})`)
+
+    if (s.opcoes) {
+      for (const o of s.opcoes) {
+        const opcaoId = `seed-${s.nome.toLowerCase().replace(/\s+/g, '-')}-${o.nome.toLowerCase().replace(/\s+/g, '-')}`
+        await prisma.opcaoServico.upsert({
+          where: { id: opcaoId },
+          update: {
+            nome: o.nome,
+            custo: o.custo,
+            ordem: o.ordem,
+          },
+          create: {
+            id: opcaoId,
+            servicoId: servico.id,
+            nome: o.nome,
+            custo: o.custo,
+            ordem: o.ordem,
+          },
+        })
+        console.log(`     └── ${o.nome}: R$ ${o.custo.toFixed(2)}`)
+      }
+    }
+  }
+
+  console.log(`\n🎉 Seed concluído: ${servicos.length} serviços`)
+  const totalOpcoes = servicos.reduce((sum, s) => sum + (s.opcoes?.length ?? 0), 0)
+  console.log(`   - ${servicos.filter(s => s.tipo === 'HORA').length} tipo HORA`)
+  console.log(`   - ${servicos.filter(s => s.tipo === 'OPCAO').length} tipo OPCAO (${totalOpcoes} opções)`)
+
+  await prisma.$disconnect()
+  await pool.end()
+}
+
+main().catch((e) => {
+  console.error(e)
+  process.exit(1)
+})

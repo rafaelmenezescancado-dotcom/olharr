@@ -93,7 +93,11 @@ function parseTransaction(
 async function main() {
   console.log('🗑️  Limpando dados existentes...')
 
-  // Delete in FK order
+  // Delete in FK order (novos modelos primeiro)
+  await prisma.itemCustoOrcamento.deleteMany()
+  await prisma.opcaoServico.deleteMany()
+  await prisma.servicoBase.deleteMany()
+  await prisma.orcamentoVersao.deleteMany()
   await prisma.custoEventoTurma.deleteMany()
   await prisma.eventoTurma.deleteMany()
   await prisma.parcelaFormando.deleteMany()

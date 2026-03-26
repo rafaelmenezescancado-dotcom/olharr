@@ -58,6 +58,14 @@ Warning:        #F59E0B     → text-warning
 Danger:         #EF4444     → text-danger
 ```
 
+### Radius Scale
+
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `--radius-lg` | `12px` | Cards, modais, chips |
+| `--radius-md` | `8px` | Inputs, selects, botões |
+| `--radius-sm` | `4px` | Badges |
+
 ### Tipografia
 - Font: Poppins (Google Fonts, carregada no layout.tsx)
 - Body: 14px, line-height 1.5
@@ -73,6 +81,21 @@ Danger:         #EF4444     → text-danger
 - Kanban: colunas com cor de borda no topo, cards com hover para indigo
 - Formulários: bg-slate-50, border-slate-200, focus:border-indigo-400
 - Input style padrão: `{ background: 'var(--color-background)', borderColor: 'var(--color-border)', color: 'var(--color-foreground)' }`
+
+### Design Tokens — Cost Builder (planejado)
+
+| Serviço | Ícone | Cor bg | Tipo |
+|---------|-------|--------|------|
+| Fotógrafo | 📷 | `rgba(139,92,246,.08)` (primary) | HORA |
+| Videomaker | 🎬 | `rgba(217,70,239,.08)` (fuchsia) | HORA |
+| Drone | 🚁 | `rgba(30,127,205,.08)` (accent) | HORA |
+| Ed. Real Time | ⚡ | `rgba(245,158,11,.08)` (warning) | HORA |
+| Aftermovie | 🎞️ | `rgba(30,127,205,.08)` (accent) | OPCAO |
+| Ensaio | 💍 | `rgba(244,63,94,.08)` (rose) | OPCAO |
+| Making Of | 💄 | `rgba(217,70,239,.08)` (fuchsia) | OPCAO |
+| Álbum | 📖 | `rgba(34,197,94,.08)` (success) | OPCAO |
+
+> Estes valores serão persistidos em `ServicoBase.icone` e `ServicoBase.cor`.
 
 ### Debt de design (a resolver)
 - 76 cores hardcoded detectadas — migrar para CSS variables
@@ -106,6 +129,7 @@ src/
 │   │   ├── agenda/          → Lista de eventos
 │   │   ├── calendario/      → Calendário social
 │   │   ├── fluxo-caixa/     → Fluxo de caixa
+│   │   ├── servicos/        → 🆕 Catálogo de ServicoBase (planejado)
 │   │   └── configuracoes/   → Configurações
 │   ├── layout.tsx           → Root layout (Poppins, html)
 │   └── globals.css          → Design tokens (@theme)
@@ -122,13 +146,13 @@ src/
 │   ├── auth/
 │   │   ├── get-user.ts      → getUser() — retorna AuthUser | null
 │   │   ├── require-role.ts  → requireRole() e requireAuth()
-│   │   ├── check-ownership.ts → canAccess() e checkOwnership() ← NOVO
+│   │   ├── check-ownership.ts → canAccess() e checkOwnership()
 │   │   └── logout.ts        → Logout action
 │   ├── supabase/            → server.ts, client.ts
 │   ├── prisma.ts            → Instância global PrismaClient
-│   ├── logger.ts            → handleActionError() + logger ← NOVO
-│   ├── pagination.ts        → parsePagination(), paginationArgs(), paginatedResult() ← NOVO
-│   ├── action-result.ts     → ActionResult<T> type ← NOVO
+│   ├── logger.ts            → handleActionError() + logger
+│   ├── pagination.ts        → parsePagination(), paginationArgs(), paginatedResult()
+│   ├── action-result.ts     → ActionResult<T> type
 │   └── utils.ts             → cn, formatCurrency, formatDate, getInitials
 └── generated/prisma/        → Client gerado (NUNCA editar)
 ```
@@ -140,7 +164,7 @@ src/
 
 ---
 
-## 5. SCHEMA PRISMA — MODELOS
+## 5. SCHEMA PRISMA — MODELOS ATUAIS
 
 | Modelo | Descrição |
 |--------|-----------|
@@ -167,7 +191,7 @@ src/
 | Formando / ParcelaFormando | Formandos e parcelas |
 | EventoTurma / CustoEventoTurma | Eventos e custos de turma |
 
-### Enums
+### Enums Atuais
 
 ```
 UserRole: ADMIN | PRODUTOR | FINANCEIRO | EXTERNO
@@ -186,7 +210,159 @@ O schema contém 49 `@@index` cobrindo todas as FKs e campos de filtro/ordenaç�
 
 ---
 
-## 6. DEPLOY
+## 6. ROADMAP — PLANO-INFRA (Schema Planejado vs. Implementado)
+
+> Fonte de verdade: `modelos-atuais/PLANO-INFRA.md` + `modelos-atuais/ADR-001-cost-builder.md`
+
+### 6.1 Modelos PLANEJADOS (ainda não no schema)
+
+| Modelo | Descrição | Fase |
+|--------|-----------|------|
+| `OrcamentoVersao` | Versionamento de propostas (snapshot JSON dos itens) | Fase 1 |
+| `ServicoBase` | Serviços unificados com tipo HORA ou OPCAO (substitui categorias) | Fase 1 |
+| `OpcaoServico` | Opções dentro de cada ServicoBase tipo OPCAO | Fase 1 |
+| `ItemCustoOrcamento` | Substitui `OrcamentoItem` — com servicoId, opcaoId, horas, custoTotal | Fase 1 |
+| `MultiplicadorEvento` | Tabela de multiplicadores para Evento/Corporativo (futuro) | Fase 1 |
+
+### 6.2 Enums PLANEJADOS (ainda não no schema)
+
+```
+Vertente: CASAMENTO | EVENTO | CORPORATIVO | QUINZE_ANOS | ENSAIO | PUBLICITARIO
+TipoServico: HORA | OPCAO
+```
+
+> **FORMATURA não é Vertente** — tem módulo próprio com lógica isolada (por formando × eventos × equipe × distância).
+
+### 6.3 Campos NOVOS planejados em modelos existentes
+
+**Orcamento** (adicionar):
+- `vertente Vertente?` — identifica qual formulário guiado usar
+- `margemPct Decimal? @db.Decimal(5, 2)` — margem global (não mais por item)
+- Relações: `versoes OrcamentoVersao[]`, `tarefas Tarefa[]`
+
+**Tarefa** (adicionar):
+- `orcamentoId String?` — vinculação com orçamento
+- `urgente Boolean @default(false)` — Eisenhower matrix
+- `importante Boolean @default(false)` — Eisenhower matrix
+- Relação: `orcamento Orcamento? @relation(..., onDelete: SetNull)`
+
+### 6.4 Mudanças de naming planejadas
+
+- `OrcamentoItem` → renomeado para `ItemCustoOrcamento` (margem sai do item, vai para Orcamento.margemPct)
+- Fórmula de preço: `valorVenda = totalCustos / (1 - margemPct / 100)`
+
+### 6.5 Decisões Arquiteturais (ADR-001)
+
+- **Cost Builder unificado**: chips de serviço (HORA/OPCAO) em vez de wizard por vertente
+- **ServicoBase modelo único**: substitui CategoriaServico eliminada; campo `area` ("FOTOGRAFIA", "VIDEO", "EXTRAS") agrupa
+- **Margem global**: `Orcamento.margemPct` em vez de margem por item
+- **Formatura isolada**: lógica por formando × evento, não usa Cost Builder
+
+---
+
+## 7. FASES DE IMPLEMENTAÇÃO (PLANO-INFRA)
+
+### Fase 1 — Schema & Backend ⏳
+1. Adicionar enums `Vertente` + `TipoServico`
+2. Adicionar `OrcamentoVersao`
+3. Adicionar `ServicoBase` + `OpcaoServico`
+4. Adicionar `MultiplicadorEvento`
+5. Criar `ItemCustoOrcamento` (substitui OrcamentoItem)
+6. Atualizar `Orcamento` (vertente, margemPct, relações)
+7. Adicionar campos Tarefa (orcamentoId, urgente, importante)
+8. Rodar migration
+9. Criar seed com dados das planilhas (ServicoBase + OpcaoServico)
+10. Criar `modules/orcamentos/schemas.ts` e `types.ts`
+11. Expandir queries e actions
+
+### Fase 2 — Refatoração Componentes Orçamentos ⏳
+Decompor `orcamentos-list.tsx` (660 linhas) em:
+
+| Componente | Responsabilidade | Linhas aprox. |
+|-----------|-----------------|---------------|
+| `orcamentos-list.tsx` | Orquestrador: state global, filtros | ~100 |
+| `orcamento-stats.tsx` | 4 cards de estatísticas | ~60 |
+| `orcamento-kanban.tsx` | Board com 4 colunas + filtro | ~80 |
+| `orcamento-card.tsx` | Card individual na coluna kanban | ~60 |
+| `orcamento-modal.tsx` | Modal de detalhes (itens, viabilidade, versões, tarefas) | ~200 |
+| `orcamento-form.tsx` | Modal de criação | ~80 |
+| `orcamento-viabilidade.tsx` | Análise de viabilidade | ~80 |
+
+### Fase 3 — Features Novas (Versões + Tarefas) ⏳
+1. `orcamento-versoes.tsx` — timeline de versões + criar versão
+2. `orcamento-tarefas.tsx` — mini-lista + criar tarefa vinculada
+3. Integrar no modal (03) e página de detalhes (03b)
+
+### Fase 4 — Cost Builder (aba "Descrição de Custos") ⏳
+1. `orcamento-cost-builder.tsx` — orquestrador: chips + form + lista
+2. `cost-builder-form.tsx` — form condicional HORA/OPCAO + ADICIONAR
+3. `cost-builder-list.tsx` — itens com ícone + horas + desc + custo + ✕
+4. `cost-builder-total.tsx` — total + "Aplicar ao Orçamento"
+
+### Fase 5 — Catálogo de Serviços (`/servicos`) ⏳
+1. Rota `/servicos` com CRUD de ServicoBase
+2. `servicos-list.tsx`, `servico-form.tsx`
+3. Seed automático baseado nas planilhas AUX
+
+### Fase 6 — Polish Visual ⏳
+1. Micro-animações (hover chips, slide-down form)
+2. Tipografia e espaçamentos
+3. Responsividade mobile
+
+---
+
+## 8. FLUXO DO MÓDULO ORÇAMENTOS (Visão Completa)
+
+```
+03d - SERVIÇOS (catálogo)          03 - ORÇAMENTOS (kanban)
+     │                                    │
+     │  Serviços alimentam               │  Clicar num card abre
+     │  os custos                         │
+     ▼                                    ▼
+Aba "Descrição de Custos"          03b - DETALHES (/orcamentos/[id])
+     │                                    │
+     │  Cost Builder: chips              │  Edição de itens, versões,
+     │  HORA/OPCAO → itens              │  tarefas, status
+     └──────────┬─────────────────────────┘
+                │
+                ▼
+         MARGEM = Valor de Venda − Custos
+         valorVenda = totalCustos / (1 - margemPct / 100)
+```
+
+### Diagrama de Relacionamentos (planejado)
+
+```
+Client (CRM)
+  │ 1:N
+  ▼
+Orcamento (vertente + margemPct global)
+  ├── 1:N → ItemCustoOrcamento (custoTotal + desc + horas?)
+  │              ├── N:1 → ServicoBase (tipo HORA: custoPorHora; tipo OPCAO: tem opções)
+  │              │              └── 1:N → OpcaoServico (nome + custo fixo)
+  │              └── N:1 → OpcaoServico (direta, quando tipo OPCAO)
+  ├── 1:N → OrcamentoVersao (snapshots)
+  └── 1:N → Tarefa (tarefas vinculadas)
+
+Configuração:
+├── ServicoBase → OpcaoServico          (catálogo unificado)
+└── MultiplicadorEvento                  (multiplicadores Evento/Corp — futuro)
+```
+
+### Novas Actions planejadas (modules/orcamentos/actions.ts)
+
+```typescript
+criarVersao(orcamentoId)              // Cria snapshot da versão atual
+restaurarVersao(versaoId)             // Restaura itens de versão anterior
+vincularTarefa(orcamentoId, formData) // Cria tarefa vinculada
+concluirTarefa(tarefaId)             // Marca tarefa como concluída
+adicionarItemCusto(orcamentoId, formData) // Cost Builder: item HORA ou OPCAO
+removerItemCusto(itemId, orcamentoId)     // Cost Builder: remove item
+```
+
+---
+
+## 9. DEPLOY
 
 - **GitHub**: `rafaelmenezescancado-dotcom/olharr` (branch `main`)
 - **Vercel**: https://olharr.vercel.app
@@ -197,21 +373,22 @@ O schema contém 49 `@@index` cobrindo todas as FKs e campos de filtro/ordenaç�
 
 ---
 
-## 7. DOCUMENTOS DE REFERÊNCIA
+## 10. DOCUMENTOS DE REFERÊNCIA
 
 | Documento | Path | Conteúdo |
 |-----------|------|----------|
-| PLANO-INFRA | `modelos-atuais/PLANO-INFRA.md` | Plano master — schema, fases, componentes |
-| ADR-001 | `modelos-atuais/ADR-001-cost-builder.md` | Decisão arquitetural do Cost Builder |
+| PLANO-INFRA | `modelos-atuais/PLANO-INFRA.md` | **Plano master** — schema planejado, fases, componentes, Cost Builder |
+| ADR-001 | `modelos-atuais/ADR-001-cost-builder.md` | Decisão: ServicoBase unificado (HORA/OPCAO), margem global |
 | ADR-002 | `modelos-atuais/ADR-002-p0-infrastructure.md` | P0 Infrastructure Hardening (indexes, logging, pagination, ownership) |
+| INDICE | `modelos-atuais/INDICE.md` | Índice de todas as telas/rotas (incluindo planejadas) |
 | Preview Orçamentos | `modelos-atuais/preview-orcamentos.html` | Layout interativo orçamentos |
 | Preview Projetos | `modelos-atuais/preview-projetos.html` | Layout interativo projetos |
 
-> **IMPORTANTE**: Os previews HTML são a referência visual definitiva.
+> **IMPORTANTE**: Os previews HTML são a referência visual definitiva. O PLANO-INFRA é a fonte de verdade para schema e fases.
 
 ---
 
-## 8. PADRÕES DE CÓDIGO
+## 11. PADRÕES DE CÓDIGO
 
 ### Server Action (padrão atualizado)
 ```typescript
@@ -242,7 +419,6 @@ export async function criarAlgo(formData: FormData) {
 
 export async function atualizarAlgo(id: string, formData: FormData) {
   const user = await requireRole(['ADMIN', 'PRODUTOR'])
-  // Ownership check — só o responsável ou ADMIN pode editar
   const registro = await prisma.model.findUnique({ where: { id }, select: { responsavelId: true } })
   const denied = checkOwnership(user, registro?.responsavelId)
   if (denied) return denied
@@ -289,7 +465,7 @@ if (result?.error) {
 
 ---
 
-## 9. UTILITÁRIOS (lib/)
+## 12. UTILITÁRIOS (lib/)
 
 | Arquivo | Exports | Uso |
 |---------|---------|-----|
@@ -304,7 +480,7 @@ if (result?.error) {
 
 ---
 
-## 10. CHECKLIST PRÉ-COMMIT
+## 13. CHECKLIST PRÉ-COMMIT
 
 - [ ] `npx tsc --noEmit` compila sem erros
 - [ ] `npm run build` compila sem erros
@@ -320,27 +496,45 @@ if (result?.error) {
 
 ---
 
-## 11. MÓDULOS — ESTADO ATUAL
+## 14. MÓDULOS — ESTADO ATUAL
 
-- ✅ Auth (login, middleware, requireRole, checkOwnership)
-- ✅ Layout + Sidebar (glassmorphism, colapsável)
-- ✅ Dashboard (stats dinâmicas)
-- ✅ Orçamentos (Kanban + modal + items com recalc transacional)
-- ✅ Formaturas (Kanban turmas + formandos + parcelas)
-- ✅ Projetos (Kanban 8 estágios + CRUD + ownership check)
-- ✅ CRM (Pipeline Kanban + cliente CRUD com contatos)
-- ✅ Financeiro (Dashboard + transações + contas + fluxo de caixa otimizado)
-- ✅ Talentos (Grid + busca + paginação)
-- ✅ Pagamentos Freela (Kanban 5 fases)
-- ✅ Tarefas (Board 3 colunas + prioridade + ownership check)
-- ✅ Fornecedores (Lista + CRUD)
-- ✅ Agenda (Lista + CRUD)
-- ✅ Calendário Social (Board por status)
-- ✅ Favicon OLHARR
-- ⏳ Configurações (página placeholder)
-- ⏳ Notificações in-app (model existe, UI não)
+### Implementados (✅)
+- **Auth** — login, middleware, requireRole, checkOwnership
+- **Layout + Sidebar** — glassmorphism, colapsável
+- **Dashboard** — stats dinâmicas
+- **Orçamentos** — Kanban + modal + items com recalc transacional (⚠️ monolítico, 660 linhas — refatorar na Fase 2)
+- **Formaturas** — Kanban turmas + formandos + parcelas
+- **Projetos** — Kanban 8 estágios + CRUD + ownership check
+- **CRM** — Pipeline Kanban + cliente CRUD com contatos
+- **Financeiro** — Dashboard + transações + contas + fluxo de caixa otimizado
+- **Talentos** — Grid + busca + paginação
+- **Pagamentos Freela** — Kanban 5 fases
+- **Tarefas** — Board 3 colunas + prioridade + ownership check
+- **Fornecedores** — Lista + CRUD
+- **Agenda** — Lista + CRUD
+- **Calendário Social** — Board por status
+- **Favicon OLHARR**
+
+### Parciais (⏳)
+- **Configurações** — página placeholder
+- **Notificações** — model existe, UI não
+
+### Planejados (🆕 — ver PLANO-INFRA)
+- **Serviços** (`/servicos`) — Catálogo de ServicoBase + OpcaoServico (Fase 5)
+- **Cost Builder** — Aba "Descrição de Custos" no orçamento (Fase 4)
+- **Versionamento Orçamentos** — OrcamentoVersao com snapshots (Fase 3)
+- **Tarefas vinculadas a orçamentos** — orcamentoId + Eisenhower (Fase 3)
+- **Insumos** (`/insumos`) — modelo Insumo (futuro)
+
+### Pendências P0 (infraestrutura — resolvidas ✅)
+- ✅ handleActionError em todas as 10+ actions
+- ✅ 49 @@index no schema
+- ✅ Paginação em Financeiro e Talentos
+- ✅ checkOwnership em Projetos e Tarefas
+- ✅ logger.ts, pagination.ts, action-result.ts, check-ownership.ts criados
 
 ### Pendências P1 (próximos sprints)
+- Implementar Fases 1–6 do PLANO-INFRA (schema → refator → features → cost builder → catálogo → polish)
 - Extrair componentes compartilhados (Modal, Kanban, PageHeader, StatusBadge, FormInput)
 - Adicionar ARIA labels e acessibilidade em todos os componentes
 - Migrar 76 cores hardcoded para CSS variables

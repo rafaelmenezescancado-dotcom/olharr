@@ -94,6 +94,20 @@ enum OrcamentoStatus {
   EXPIRADO
 }
 
+enum Vertente {
+  CASAMENTO
+  EVENTO
+  CORPORATIVO
+  QUINZE_ANOS
+  ENSAIO
+  PUBLICITARIO
+}
+
+enum TipoServico {
+  HORA
+  OPCAO
+}
+
 // ─── USUÁRIOS ────────────────────────────────────────────────────────────────
 
 model User {
@@ -279,23 +293,28 @@ model ProjetoLabel {
 // ─── TAREFAS ─────────────────────────────────────────────────────────────────
 
 model Tarefa {
-  id           String       @id @default(cuid())
-  titulo       String
-  descricao    String?
-  status       TaskStatus   @default(PENDENTE)
-  prioridade   TaskPriority @default(MEDIA)
-  projectId    String?
-  responsavelId String?
+  id             String       @id @default(cuid())
+  titulo         String
+  descricao      String?
+  status         TaskStatus   @default(PENDENTE)
+  prioridade     TaskPriority @default(MEDIA)
+  projectId      String?
+  responsavelId  String?
+  orcamentoId    String?
+  urgente        Boolean      @default(false)
+  importante     Boolean      @default(false)
   dataVencimento DateTime?
-  concluidaEm  DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  concluidaEm    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  projeto     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  responsavel User?    @relation(fields: [responsavelId], references: [id], onDelete: SetNull)
+  projeto     Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  responsavel User?      @relation(fields: [responsavelId], references: [id], onDelete: SetNull)
+  orcamento   Orcamento? @relation(fields: [orcamentoId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
   @@index([responsavelId])
+  @@index([orcamentoId])
   @@index([status])
   @@index([prioridade])
   @@index([dataVencimento])
@@ -405,6 +424,60 @@ model Fornecedor {
   @@map("fornecedores")
 }
 
+// ─── SERVIÇOS (Catálogo de Custos) ──────────────────────────────────────────
+
+model ServicoBase {
+  id           String      @id @default(cuid())
+  nome         String
+  tipo         TipoServico
+  icone        String?
+  cor          String?
+  area         String      // "FOTOGRAFIA", "VIDEO", "EXTRAS"
+  custoPorHora Decimal?    @db.Decimal(10, 2)
+  ativo        Boolean     @default(true)
+  ordem        Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  opcoes OpcaoServico[]
+  itens  ItemCustoOrcamento[]
+
+  @@index([tipo])
+  @@index([area])
+  @@index([ativo])
+  @@map("servicos_base")
+}
+
+model OpcaoServico {
+  id        String  @id @default(cuid())
+  servicoId String
+  nome      String
+  custo     Decimal @db.Decimal(10, 2)
+  ordem     Int     @default(0)
+  ativo     Boolean @default(true)
+
+  servico ServicoBase          @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  itens   ItemCustoOrcamento[]
+
+  @@index([servicoId])
+  @@index([ativo])
+  @@map("opcoes_servico")
+}
+
+// ─── MULTIPLICADORES EVENTO/CORPORATIVO ─────────────────────────────────────
+
+model MultiplicadorEvento {
+  id       String   @id @default(cuid())
+  vertente Vertente
+  tipo     String
+  chave    String
+  valor    Decimal  @db.Decimal(5, 3)
+
+  @@unique([vertente, tipo, chave])
+  @@index([vertente])
+  @@map("multiplicadores_evento")
+}
+
 // ─── ORÇAMENTOS ──────────────────────────────────────────────────────────────
 
 model Orcamento {
@@ -412,19 +485,25 @@ model Orcamento {
   clienteId   String
   titulo      String
   status      OrcamentoStatus @default(RASCUNHO)
+  vertente    Vertente?
   vertical    String?
   validoAte   DateTime?
   totalBruto  Decimal         @db.Decimal(10, 2) @default(0)
   margem      Decimal?        @db.Decimal(5, 2)
+  margemPct   Decimal?        @db.Decimal(5, 2)
   observacoes String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  cliente Client         @relation(fields: [clienteId], references: [id])
-  itens   OrcamentoItem[]
+  cliente    Client               @relation(fields: [clienteId], references: [id])
+  itens      OrcamentoItem[]
+  itensCusto ItemCustoOrcamento[]
+  versoes    OrcamentoVersao[]
+  tarefas    Tarefa[]
 
   @@index([clienteId])
   @@index([status])
+  @@index([vertente])
   @@index([createdAt])
   @@map("orcamentos")
 }
@@ -441,6 +520,44 @@ model OrcamentoItem {
 
   @@index([orcamentoId])
   @@map("orcamento_itens")
+}
+
+model ItemCustoOrcamento {
+  id          String   @id @default(cuid())
+  orcamentoId String
+  servicoId   String?
+  opcaoId     String?
+  descricao   String
+  horas       Int?
+  custoTotal  Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  orcamento Orcamento     @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+  servico   ServicoBase?  @relation(fields: [servicoId], references: [id], onDelete: SetNull)
+  opcao     OpcaoServico? @relation(fields: [opcaoId], references: [id], onDelete: SetNull)
+
+  @@index([orcamentoId])
+  @@index([servicoId])
+  @@index([opcaoId])
+  @@map("itens_custo_orcamento")
+}
+
+model OrcamentoVersao {
+  id          String   @id @default(cuid())
+  orcamentoId String
+  versao      Int      @default(1)
+  snapshot    Json
+  totalBruto  Decimal  @db.Decimal(10, 2)
+  margem      Decimal? @db.Decimal(5, 2)
+  observacoes String?
+  criadoPor   String?
+  createdAt   DateTime @default(now())
+
+  orcamento Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+
+  @@unique([orcamentoId, versao])
+  @@index([orcamentoId])
+  @@map("orcamento_versoes")
 }
 
 // ─── AGENDA ──────────────────────────────────────────────────────────────────
